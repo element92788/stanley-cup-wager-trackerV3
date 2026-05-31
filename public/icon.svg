@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="110" fill="#070707"/>
+  <path d="M0 0h256v512H0z" fill="#CE1126" opacity=".85"/>
+  <path d="M256 0h256v512H256z" fill="#B9975B" opacity=".9"/>
+  <text x="256" y="238" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="116" font-weight="900" fill="white">CUP</text>
+  <text x="256" y="330" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="70" font-weight="900" fill="white">$</text>
+</svg>
