@@ -1,0 +1,38 @@
+
+/* Add to app/globals.css */
+
+.schedule-row {
+  display: grid;
+  grid-template-columns: 74px 1fr;
+  gap: 10px;
+  align-items: start;
+  padding: 13px 0;
+  border-top: 1px solid rgba(255,255,255,.1);
+}
+
+.schedule-row:first-of-type {
+  border-top: 0;
+}
+
+.schedule-game-number {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.schedule-detail {
+  grid-column: 1 / -1;
+  padding-left: 84px;
+}
+
+@media (min-width: 760px) {
+  .schedule-row {
+    grid-template-columns: 86px 1fr 220px 92px;
+    align-items: center;
+  }
+
+  .schedule-detail {
+    grid-column: auto;
+    padding-left: 0;
+  }
+}
