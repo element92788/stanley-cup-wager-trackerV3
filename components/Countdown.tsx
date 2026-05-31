@@ -25,7 +25,7 @@ export function Countdown({ nextGame, liveGame }: { nextGame: CupGame | null; li
   if (liveGame) {
     return (
       <section className="card">
-        <div className="label">Game is live</div>
+        <div className="label">Stanley Cup Final is live</div>
         <h2>Current puck drop is underway</h2>
         <span className="badge live">LIVE NOW</span>
       </section>
@@ -34,7 +34,7 @@ export function Countdown({ nextGame, liveGame }: { nextGame: CupGame | null; li
 
   return (
     <section className="card">
-      <div className="label">Next puck drop</div>
+      <div className="label">Next Stanley Cup Final puck drop</div>
       <h2>{nextGame ? `Game ${nextGame.gameNumber}` : "Schedule pending"}</h2>
       {nextGame ? (
         <>
@@ -56,7 +56,7 @@ export function Countdown({ nextGame, liveGame }: { nextGame: CupGame | null; li
           </div>
         </>
       ) : (
-        <p className="small">No upcoming puck drop found yet. The app will keep checking the NHL feed.</p>
+        <p className="small">No upcoming Stanley Cup Final game found yet. The wager will not count regular season games.</p>
       )}
     </section>
   );

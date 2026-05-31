@@ -246,3 +246,28 @@ h1 {
     padding-top: 28px;
   }
 }
+
+.team-logo {
+  object-fit: contain;
+  filter: drop-shadow(0 8px 14px rgba(0,0,0,.35));
+}
+
+.team-line {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+
+.series-logos {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 8px 0 12px;
+}
+
+.series-logos span {
+  color: var(--muted);
+  font-weight: 900;
+  text-transform: uppercase;
+}

@@ -7,40 +7,33 @@ import { Countdown } from "@/components/Countdown";
 import { Scoreboard } from "@/components/Scoreboard";
 import { WagerTracker } from "@/components/WagerTracker";
 import { SeriesTracker } from "@/components/SeriesTracker";
+import { HistoryTracker } from "@/components/HistoryTracker";
+import { TeamLogo } from "@/components/TeamLogo";
+
+const fallbackGame = {
+  id: "initial",
+  gameNumber: 1,
+  startTimeUTC: CONFIG.firstGamePuckDrop,
+  venue: "PNC Arena, Raleigh, NC",
+  homeTeam: "CAR" as const,
+  awayTeam: "VGK" as const,
+  homeScore: null,
+  awayScore: null,
+  status: "scheduled" as const,
+  period: null,
+  clock: null,
+  winner: null,
+  gameType: 3,
+  playoffRound: 4,
+  isStanleyCupFinal: true
+};
 
 const fallback: TrackerData = {
   generatedAt: new Date().toISOString(),
   source: "fallback",
-  games: [
-    {
-      id: "initial",
-      gameNumber: 1,
-      startTimeUTC: CONFIG.firstGamePuckDrop,
-      venue: "PNC Arena, Raleigh, NC",
-      homeTeam: "CAR",
-      awayTeam: "VGK",
-      homeScore: null,
-      awayScore: null,
-      status: "scheduled",
-      period: null,
-      clock: null,
-      winner: null
-    }
-  ],
-  nextGame: {
-    id: "initial",
-    gameNumber: 1,
-    startTimeUTC: CONFIG.firstGamePuckDrop,
-    venue: "PNC Arena, Raleigh, NC",
-    homeTeam: "CAR",
-    awayTeam: "VGK",
-    homeScore: null,
-    awayScore: null,
-    status: "scheduled",
-    period: null,
-    clock: null,
-    winner: null
-  },
+  games: [fallbackGame],
+  finalsGames: [fallbackGame],
+  nextGame: fallbackGame,
   liveGame: null,
   series: { VGK: 0, CAR: 0 },
   cupWinner: null
@@ -76,6 +69,8 @@ export default function Home() {
     return () => window.clearInterval(timer);
   }, []);
 
+  const latestFinalsGame = data.liveGame || [...data.finalsGames].reverse().find((g) => g.status === "final") || null;
+
   return (
     <main>
       <section className="hero">
@@ -84,12 +79,14 @@ export default function Home() {
 
         <div className="matchup">
           <div className="team gold-border">
+            <TeamLogo team="VGK" size={72} />
             <div className="abbr gold">VGK</div>
             <div className="name">Vegas Golden Knights</div>
             <div className="small">Brett</div>
           </div>
           <div className="vs">VS</div>
           <div className="team red-border">
+            <TeamLogo team="CAR" size={72} />
             <div className="abbr red">CAR</div>
             <div className="name">Carolina Hurricanes</div>
             <div className="small">Dad</div>
@@ -97,7 +94,7 @@ export default function Home() {
         </div>
 
         <p className="small" style={{ marginTop: 14 }}>
-          $10 per game won • $100 Cup winner bonus • First game in NC
+          Wager counts Stanley Cup Final games only • $10 per Final game won • $100 Cup winner bonus
         </p>
       </section>
 
@@ -110,10 +107,11 @@ export default function Home() {
         <div className="grid">
           <Countdown nextGame={data.nextGame} liveGame={data.liveGame} />
           <div className="grid two">
-            <Scoreboard game={data.liveGame || data.games.find((g) => g.status === "final") || null} />
+            <Scoreboard game={latestFinalsGame} />
             <WagerTracker data={data} perspective={perspective} setPerspective={setPerspective} />
           </div>
           <SeriesTracker data={data} />
+          <HistoryTracker data={data} />
         </div>
       )}
 

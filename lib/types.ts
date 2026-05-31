@@ -15,14 +15,18 @@ export type CupGame = {
   period?: number | null;
   clock?: string | null;
   winner?: TeamAbbr | null;
+  gameType?: number | null;
+  playoffRound?: number | null;
+  isStanleyCupFinal?: boolean;
 };
 
 export type TrackerData = {
   generatedAt: string;
   source: "nhl-api" | "fallback";
-  games: CupGame[];
+  games: CupGame[];        // full VGK vs CAR history found from NHL feed
+  finalsGames: CupGame[];  // ONLY Stanley Cup Final games; wager uses this only
   nextGame: CupGame | null;
   liveGame: CupGame | null;
-  series: Record<TeamAbbr, number>;
+  series: Record<TeamAbbr, number>; // Stanley Cup Final series only
   cupWinner: TeamAbbr | null;
 };

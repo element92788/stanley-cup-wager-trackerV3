@@ -7,12 +7,14 @@ export const CONFIG = {
     VGK: {
       abbr: "VGK",
       fullName: "Vegas Golden Knights",
-      owner: "Brett"
+      owner: "Brett",
+      logo: "https://assets.nhle.com/logos/nhl/svg/VGK_light.svg"
     },
     CAR: {
       abbr: "CAR",
       fullName: "Carolina Hurricanes",
-      owner: "Dad"
+      owner: "Dad",
+      logo: "https://assets.nhle.com/logos/nhl/svg/CAR_light.svg"
     }
   }
 } as const;
