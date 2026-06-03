@@ -6,7 +6,6 @@ import type { TrackerData } from "@/lib/types";
 import { Countdown } from "@/components/Countdown";
 import { Scoreboard } from "@/components/Scoreboard";
 import { WagerTracker } from "@/components/WagerTracker";
-import { SeriesTracker } from "@/components/SeriesTracker";
 import { HistoryTracker } from "@/components/HistoryTracker";
 import { FullSchedule } from "@/components/FullSchedule";
 import { TeamLogo } from "@/components/TeamLogo";
@@ -88,6 +87,20 @@ export default function Home() {
         <p className="kicker">Stanley Cup Finals</p>
         <h1>Wager Tracker</h1>
 
+        <div className="hero-series-total" aria-label="Stanley Cup Final series total">
+          <span className="series-side series-side-vgk">
+            <TeamLogo team="VGK" size={34} />
+            <span>VGK</span>
+            <strong>{data.series.VGK}</strong>
+          </span>
+          <span className="series-separator">-</span>
+          <span className="series-side series-side-car">
+            <strong>{data.series.CAR}</strong>
+            <span>CAR</span>
+            <TeamLogo team="CAR" size={34} />
+          </span>
+        </div>
+
         <div className="matchup">
           <div className="team gold-border">
             <TeamLogo team="VGK" size={72} />
@@ -118,10 +131,7 @@ export default function Home() {
         <div className="grid">
           <Countdown nextGame={data.nextGame} liveGame={data.liveGame} />
           <Scoreboard game={latestFinalsGame} series={data.series} />
-          <div className="grid two">
-            <WagerTracker data={data} perspective={perspective} setPerspective={setPerspective} />
-            <SeriesTracker data={data} />
-          </div>
+          <WagerTracker data={data} perspective={perspective} setPerspective={setPerspective} />
           <FullSchedule data={data} />
           <HistoryTracker data={data} />
         </div>

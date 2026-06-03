@@ -297,9 +297,9 @@ const styles = `
 
 .score-top h2 {
   margin: 0;
-  font-size: clamp(22px, 4.8vw, 30px);
+  font-size: clamp(26px, 6vw, 40px);
   line-height: 1;
-  font-weight: 800;
+  font-weight: 1000;
   color: #fff;
 }
 
@@ -308,8 +308,8 @@ const styles = `
   padding: 8px 10px;
   background: rgba(255,255,255,.10);
   color: rgba(255,255,255,.82);
-  font-size: clamp(12px, 2.8vw, 15px);
-  font-weight: 800;
+  font-size: clamp(12px, 3.2vw, 17px);
+  font-weight: 900;
   white-space: nowrap;
   text-align: right;
 }
@@ -340,18 +340,18 @@ const styles = `
 
 .score-num {
   margin-top: 8px;
-  font-size: clamp(38px, 10vw, 60px);
+  font-size: clamp(48px, 14vw, 84px);
   line-height: .92;
-  font-weight: 800;
+  font-weight: 1000;
   color: #fff;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.06em;
 }
 
 .team-name {
   margin-top: 8px;
-  font-size: clamp(15px, 3.6vw, 22px);
-  font-weight: 800;
-  line-height: 1.08;
+  font-size: clamp(17px, 4.8vw, 32px);
+  font-weight: 900;
+  line-height: 1.05;
   color: #fff;
   overflow-wrap: break-word;
 }
@@ -362,24 +362,24 @@ const styles = `
   padding: 5px 8px;
   background: rgba(255,255,255,.08);
   color: rgba(255,255,255,.72);
-  font-size: clamp(11px, 2.5vw, 13px);
-  font-weight: 800;
+  font-size: clamp(11px, 3vw, 14px);
+  font-weight: 900;
   letter-spacing: .02em;
 }
 
 .score-divider {
   align-self: center;
   color: rgba(255,255,255,.76);
-  font-size: clamp(28px, 7vw, 44px);
-  font-weight: 800;
+  font-size: clamp(34px, 10vw, 62px);
+  font-weight: 1000;
 }
 
 .game-subtitle {
   margin: clamp(18px, 5vw, 26px) 0 clamp(12px, 3vw, 18px);
   text-align: center;
   color: rgba(255,255,255,.70);
-  font-size: clamp(14px, 3.2vw, 18px);
-  font-weight: 800;
+  font-size: clamp(15px, 4vw, 22px);
+  font-weight: 900;
 }
 
 .period-table {
@@ -388,7 +388,7 @@ const styles = `
   align-items: center;
   padding: clamp(12px, 3vw, 18px) 0;
   color: #fff;
-  font-size: clamp(13px, 3vw, 17px);
+  font-size: clamp(14px, 3.8vw, 22px);
   line-height: 1.2;
   background: rgba(0,0,0,.20);
   border: 1px solid rgba(255,255,255,.12);
@@ -406,12 +406,12 @@ const styles = `
 
 .table-head {
   color: rgba(255,255,255,.58);
-  font-weight: 800;
+  font-weight: 900;
 }
 
 .team-code,
 .table-total {
-  font-weight: 800;
+  font-weight: 1000;
 }
 
 .alerts-row {
@@ -435,7 +435,7 @@ const styles = `
   padding: 8px 12px;
   background: rgba(50,213,131,.14);
   color: #32d583;
-  font-weight: 800;
+  font-weight: 900;
 }
 
 .goal-overlay {
@@ -455,7 +455,7 @@ const styles = `
 
 .goal-text {
   font-size: clamp(48px, 13vw, 92px);
-  font-weight: 800;
+  font-weight: 1000;
   letter-spacing: -0.08em;
 }
 

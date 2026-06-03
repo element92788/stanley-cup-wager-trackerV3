@@ -61,103 +61,13 @@ function isVgkCarNhl(game: any) {
     ((home === "VGK" && away === "CAR") || (home === "CAR" && away === "VGK"));
 }
 
-function toScore(value: any): number | null {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim() !== "" && Number.isFinite(Number(value))) return Number(value);
-  return null;
-}
-
-function emptyPeriodMap(maxPeriod = 3) {
-  const map = new Map<number, PeriodScore>();
-  for (let period = 1; period <= maxPeriod; period += 1) {
-    map.set(period, { period, away: 0, home: 0 });
-  }
-  return map;
-}
-
-function periodFromDescriptor(value: any, fallback: number) {
-  return Number(value?.periodDescriptor?.number || value?.periodNumber || value?.period || value?.num || fallback);
-}
-
-function teamFromGoal(goal: any): TeamAbbr | null {
-  const raw =
-    goal.teamAbbrev?.default ||
-    goal.teamAbbrev ||
-    goal.team?.abbreviation ||
-    goal.team?.abbrev ||
-    goal.team ||
-    goal.triCode ||
-    goal.scoringTeam;
-
-  return raw === "VGK" || raw === "CAR" ? raw : null;
-}
-
-function derivePeriodScoresFromGoals(scoring: any[], awayTeam: TeamAbbr, homeTeam: TeamAbbr): PeriodScore[] {
-  const maxPeriod = Math.max(
-    3,
-    ...scoring.map((periodBlock: any, index: number) => periodFromDescriptor(periodBlock, index + 1))
-  );
-  const map = emptyPeriodMap(maxPeriod);
-
-  for (const periodBlock of scoring) {
-    const period = periodFromDescriptor(periodBlock, 1);
-    const current = map.get(period) || { period, away: 0, home: 0 };
-    const goals = Array.isArray(periodBlock?.goals) ? periodBlock.goals : [];
-
-    for (const goal of goals) {
-      const team = teamFromGoal(goal);
-      if (team === awayTeam) current.away = (current.away ?? 0) + 1;
-      if (team === homeTeam) current.home = (current.home ?? 0) + 1;
-    }
-
-    map.set(period, current);
-  }
-
-  return Array.from(map.values()).sort((a, b) => a.period - b.period);
-}
-
-function getNhlPeriodScores(game: any, awayTeam: TeamAbbr, homeTeam: TeamAbbr): PeriodScore[] {
-  // Best source from NHL gamecenter landing: summary.scoring contains actual goals grouped by period.
-  const scoring = game.summary?.scoring;
-  if (Array.isArray(scoring) && scoring.length) {
-    return derivePeriodScoresFromGoals(scoring, awayTeam, homeTeam);
-  }
-
-  // Some NHL/partner feeds expose a direct period line score instead.
+function getNhlPeriodScores(game: any): PeriodScore[] {
   const source = game.linescore?.periods || game.periodScores || game.periods || [];
-  if (Array.isArray(source) && source.length) {
-    return source.map((p: any, idx: number) => ({
-      period: periodFromDescriptor(p, idx + 1),
-      away:
-        toScore(p.away) ??
-        toScore(p.awayScore) ??
-        toScore(p.awayTeam?.score) ??
-        toScore(p.visitor?.score) ??
-        0,
-      home:
-        toScore(p.home) ??
-        toScore(p.homeScore) ??
-        toScore(p.homeTeam?.score) ??
-        toScore(p.home?.score) ??
-        0
-    }));
-  }
-
-  return [];
-}
-
-function getEspnPeriodScores(competition: any): PeriodScore[] {
-  const competitors = competition?.competitors || [];
-  const homeComp = competitors.find((c: any) => c.homeAway === "home");
-  const awayComp = competitors.find((c: any) => c.homeAway === "away");
-  const awayLines = Array.isArray(awayComp?.linescores) ? awayComp.linescores : [];
-  const homeLines = Array.isArray(homeComp?.linescores) ? homeComp.linescores : [];
-  const maxPeriod = Math.max(3, awayLines.length, homeLines.length);
-
-  return Array.from({ length: maxPeriod }, (_, idx) => ({
-    period: idx + 1,
-    away: toScore(awayLines[idx]?.value) ?? toScore(awayLines[idx]?.displayValue) ?? 0,
-    home: toScore(homeLines[idx]?.value) ?? toScore(homeLines[idx]?.displayValue) ?? 0
+  if (!Array.isArray(source)) return [];
+  return source.map((p: any, idx: number) => ({
+    period: Number(p.periodDescriptor?.number || p.num || p.period || idx + 1),
+    away: typeof p.away === "number" ? p.away : typeof p.awayScore === "number" ? p.awayScore : null,
+    home: typeof p.home === "number" ? p.home : typeof p.homeScore === "number" ? p.homeScore : null
   }));
 }
 
@@ -209,7 +119,7 @@ function normalizeNhlGame(game: any, index: number): CupGame | null {
     playoffRound: gameType === 3 ? 4 : null,
     isStanleyCupFinal: gameType === 3 && new Date(startTimeUTC).getTime() >= FINAL_START,
     broadcast: tv || "ABC, SN, CBC, TVAS",
-    periodScores: getNhlPeriodScores(game, away, home),
+    periodScores: getNhlPeriodScores(game),
     statusText: getStatusText(game, status)
   };
 }
@@ -256,7 +166,7 @@ function normalizeEspnGame(event: any, index: number): CupGame | null {
     broadcast: Array.isArray(competition?.broadcasts)
       ? competition.broadcasts.map((b: any) => b.names?.join(", ")).filter(Boolean).join(", ")
       : "ABC, SN, CBC, TVAS",
-    periodScores: getEspnPeriodScores(competition),
+    periodScores: [],
     statusText: event?.status?.type?.shortDetail || null
   };
 }
