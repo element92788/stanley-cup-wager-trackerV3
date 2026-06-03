@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#111111" />
+  <title>Stanley Cup Wager Tracker</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <p class="kicker">Stanley Cup Finals</p>
+      <h1>Wager Tracker</h1>
+
+      <div class="matchup">
+        <div class="team gold-border">
+          <div class="team-logo-score">
+            <img class="team-logo" src="https://assets.nhle.com/logos/nhl/svg/VGK_light.svg" alt="Vegas Golden Knights logo" />
+            <span id="series-vgk-top" class="header-series-score gold">1</span>
+          </div>
+          <div class="abbr gold">VGK</div>
+          <div class="name">Vegas Golden Knights</div>
+          <div class="small">Brett</div>
+        </div>
+
+        <div class="vs">VS</div>
+
+        <div class="team red-border">
+          <div class="team-logo-score">
+            <span id="series-car-top" class="header-series-score red">0</span>
+            <img class="team-logo" src="https://assets.nhle.com/logos/nhl/svg/CAR_light.svg" alt="Carolina Hurricanes logo" />
+          </div>
+          <div class="abbr red">CAR</div>
+          <div class="name">Carolina Hurricanes</div>
+          <div class="small">Dad</div>
+        </div>
+      </div>
+
+      <p class="small hero-note">Wager counts Stanley Cup Final games only • $10 per Final game won • $100 Cup winner bonus</p>
+    </section>
+
+    <section class="card" id="countdown-card">
+      <div class="label">Next Stanley Cup Final puck drop</div>
+      <h2 id="countdown-title">Loading schedule...</h2>
+      <div class="countdown" id="countdown">
+        <div><strong id="cd-days">--</strong><span>Days</span></div>
+        <div><strong id="cd-hours">--</strong><span>Hours</span></div>
+        <div><strong id="cd-minutes">--</strong><span>Minutes</span></div>
+        <div><strong id="cd-seconds">--</strong><span>Seconds</span></div>
+      </div>
+      <p class="small" id="countdown-detail">Checking official Finals schedule.</p>
+    </section>
+
+    <div class="grid two">
+      <section class="score-card" id="score-card">
+        <div class="score-top">
+          <div>
+            <div class="mini-label">Live Finals Score</div>
+            <h2>NHL</h2>
+          </div>
+          <span class="status-chip" id="score-status">Loading</span>
+        </div>
+
+        <div class="score-matchup">
+          <div class="score-team-card" id="away-card">
+            <img class="team-logo score-logo" id="away-logo" alt="" />
+            <div class="score-num" id="away-score">-</div>
+            <div class="score-team-name" id="away-name">Away</div>
+            <div class="series-line" id="away-series">Series --</div>
+          </div>
+
+          <div class="score-divider">-</div>
+
+          <div class="score-team-card" id="home-card">
+            <img class="team-logo score-logo" id="home-logo" alt="" />
+            <div class="score-num" id="home-score">-</div>
+            <div class="score-team-name" id="home-name">Home</div>
+            <div class="series-line" id="home-series">Series --</div>
+          </div>
+        </div>
+
+        <div class="game-subtitle" id="score-subtitle">Stanley Cup Final</div>
+
+        <div class="period-table" id="period-table"></div>
+
+        <div class="alerts-row">
+          <button class="notify-button" id="notify-button" type="button">Enable Goal Alerts</button>
+          <span class="alerts-on hidden" id="alerts-on">Alerts On</span>
+        </div>
+
+        <div class="goal-overlay hidden" id="goal-overlay">
+          <div class="goal-text">GOAL!</div>
+          <div id="goal-team">Team</div>
+          <strong id="goal-score">0 - 0</strong>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="label">Wager tracker</div>
+        <h2>Current Wager</h2>
+        <div class="wager-row">
+          <span>Brett / VGK</span>
+          <strong id="brett-money">$0</strong>
+        </div>
+        <div class="wager-row">
+          <span>Dad / CAR</span>
+          <strong id="dad-money">$0</strong>
+        </div>
+        <p class="small" id="wager-detail">$10 per Finals win • $100 Cup winner bonus</p>
+      </section>
+    </div>
+
+    <section class="card">
+      <div class="label">Full Stanley Cup Final schedule</div>
+      <h2>Best-of-7 Schedule</h2>
+      <p class="small">Only these official Finals games count toward the wager.</p>
+      <div id="schedule-list"></div>
+    </section>
+
+    <section class="card">
+      <div class="label">Full VGK vs CAR history</div>
+      <h2>Season Matchup History</h2>
+      <p class="small">Regular season history plus the official 7-game Stanley Cup Final schedule.</p>
+      <div id="history-list"></div>
+    </section>
+
+    <p class="footer" id="footer">Data source: public NHL/ESPN feeds • Updates every 30 seconds</p>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>
