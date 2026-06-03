@@ -33,22 +33,48 @@ export function Scoreboard({ game }: { game: CupGame | null }) {
   const previousScoreRef = useRef<{ gameId: string; home: number | null; away: number | null } | null>(null);
   const [goalAlert, setGoalAlert] = useState<GoalAlert | null>(null);
   const [flashTeam, setFlashTeam] = useState<"VGK" | "CAR" | null>(null);
+  const [notificationState, setNotificationState] = useState<NotificationPermission | "unsupported">("unsupported");
+
+  useEffect(() => {
+    if ("Notification" in window) {
+      setNotificationState(Notification.permission);
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("/sw.js").catch(() => {});
+      }
+    }
+  }, []);
 
   const currentScore = useMemo(() => {
     if (!game) return null;
-    return {
-      gameId: game.id,
-      home: game.homeScore,
-      away: game.awayScore
-    };
+    return { gameId: game.id, home: game.homeScore, away: game.awayScore };
   }, [game]);
+
+  async function sendMobileNotification(title: string, body: string, icon: string) {
+    if (!("Notification" in window) || Notification.permission !== "granted") return;
+
+    try {
+      if ("serviceWorker" in navigator) {
+        const registration = await navigator.serviceWorker.ready;
+        await registration.showNotification(title, {
+          body,
+          icon,
+          badge: icon,
+          vibrate: [200, 100, 200],
+          tag: `goal-${Date.now()}`
+        });
+      } else {
+        new Notification(title, { body, icon });
+      }
+    } catch {
+      new Notification(title, { body, icon });
+    }
+  }
 
   useEffect(() => {
     if (!game || !currentScore) return;
 
     const previous = previousScoreRef.current;
 
-    // First load: store score but do not alert.
     if (!previous || previous.gameId !== currentScore.gameId) {
       previousScoreRef.current = currentScore;
       return;
@@ -74,13 +100,11 @@ export function Scoreboard({ game }: { game: CupGame | null }) {
 
       setGoalAlert(alert);
       setFlashTeam(scoringTeam);
-
-      if ("Notification" in window && Notification.permission === "granted") {
-        new Notification(`GOAL! ${CONFIG.teams[scoringTeam].fullName}`, {
-          body: alert.score,
-          icon: CONFIG.teams[scoringTeam].logo
-        });
-      }
+      sendMobileNotification(
+        `GOAL! ${CONFIG.teams[scoringTeam].fullName}`,
+        alert.score,
+        CONFIG.teams[scoringTeam].logo
+      );
 
       window.setTimeout(() => setGoalAlert(null), 6500);
       window.setTimeout(() => setFlashTeam(null), 2500);
@@ -90,9 +114,20 @@ export function Scoreboard({ game }: { game: CupGame | null }) {
   }, [game, currentScore]);
 
   async function enableNotifications() {
-    if (!("Notification" in window)) return;
-    if (Notification.permission === "default") {
-      await Notification.requestPermission();
+    if (!("Notification" in window)) {
+      setNotificationState("unsupported");
+      return;
+    }
+
+    const permission = await Notification.requestPermission();
+    setNotificationState(permission);
+
+    if (permission === "granted") {
+      await sendMobileNotification(
+        "Goal alerts enabled",
+        "You’ll get an alert when VGK or CAR scores while this app is open or installed.",
+        "/icon.svg"
+      );
     }
   }
 
@@ -128,11 +163,13 @@ export function Scoreboard({ game }: { game: CupGame | null }) {
           <h2>Final Game {game.gameNumber}</h2>
         </div>
 
-        {"Notification" in globalThis && (
+        {notificationState !== "granted" && notificationState !== "unsupported" && (
           <button className="notify-button" onClick={enableNotifications}>
             Enable Goal Alerts
           </button>
         )}
+
+        {notificationState === "granted" && <span className="badge">Alerts On</span>}
       </div>
 
       {[game.awayTeam, game.homeTeam].map((team) => (
@@ -157,9 +194,9 @@ export function Scoreboard({ game }: { game: CupGame | null }) {
       ))}
 
       <p className="small">{statusText(game)}</p>
-      {game.status === "scheduled" && (
-        <p className="small">Score will change from “-” to live once the NHL feed marks the game live.</p>
-      )}
+      <p className="small">
+        Mobile alerts work best after adding this site to your phone’s home screen and tapping Enable Goal Alerts.
+      </p>
     </section>
   );
 }
