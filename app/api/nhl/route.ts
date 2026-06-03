@@ -61,13 +61,85 @@ function isVgkCarNhl(game: any) {
     ((home === "VGK" && away === "CAR") || (home === "CAR" && away === "VGK"));
 }
 
-function getNhlPeriodScores(game: any): PeriodScore[] {
+function asNumber(value: any): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim() !== "" && Number.isFinite(Number(value))) return Number(value);
+  return null;
+}
+
+function blankPeriodScores(maxPeriod = 3): PeriodScore[] {
+  return Array.from({ length: maxPeriod }, (_, idx) => ({
+    period: idx + 1,
+    away: 0,
+    home: 0
+  }));
+}
+
+function getNhlPeriodScores(game: any, awayTeam: TeamAbbr, homeTeam: TeamAbbr): PeriodScore[] {
+  // NHL Gamecenter landing commonly exposes scoring plays here:
+  // summary.scoring = [{ periodDescriptor: { number }, goals: [{ teamAbbrev: { default: "VGK" } }] }]
+  const scoring = game.summary?.scoring;
+  if (Array.isArray(scoring) && scoring.length) {
+    const maxPeriod = Math.max(3, ...scoring.map((p: any) => Number(p.periodDescriptor?.number || p.period || 1)));
+    const periods = blankPeriodScores(maxPeriod);
+
+    for (const periodBlock of scoring) {
+      const periodNumber = Number(periodBlock.periodDescriptor?.number || periodBlock.period || 1);
+      const row = periods.find((p) => p.period === periodNumber);
+      if (!row || !Array.isArray(periodBlock.goals)) continue;
+
+      for (const goal of periodBlock.goals) {
+        const abbr =
+          goal.teamAbbrev?.default ||
+          goal.teamAbbrev ||
+          goal.team?.abbrev ||
+          goal.team?.abbreviation ||
+          goal.team;
+        if (abbr === awayTeam) row.away = (row.away ?? 0) + 1;
+        if (abbr === homeTeam) row.home = (row.home ?? 0) + 1;
+      }
+    }
+
+    return periods;
+  }
+
   const source = game.linescore?.periods || game.periodScores || game.periods || [];
-  if (!Array.isArray(source)) return [];
-  return source.map((p: any, idx: number) => ({
-    period: Number(p.periodDescriptor?.number || p.num || p.period || idx + 1),
-    away: typeof p.away === "number" ? p.away : typeof p.awayScore === "number" ? p.awayScore : null,
-    home: typeof p.home === "number" ? p.home : typeof p.homeScore === "number" ? p.homeScore : null
+  if (Array.isArray(source) && source.length) {
+    return source.map((p: any, idx: number) => {
+      const away =
+        asNumber(p.away) ??
+        asNumber(p.awayScore) ??
+        asNumber(p.awayTeam?.score) ??
+        asNumber(p.away?.score) ??
+        0;
+
+      const home =
+        asNumber(p.home) ??
+        asNumber(p.homeScore) ??
+        asNumber(p.homeTeam?.score) ??
+        asNumber(p.home?.score) ??
+        0;
+
+      return {
+        period: Number(p.periodDescriptor?.number || p.num || p.period || idx + 1),
+        away,
+        home
+      };
+    });
+  }
+
+  return blankPeriodScores(3);
+}
+
+function getEspnPeriodScores(homeComp: any, awayComp: any): PeriodScore[] {
+  const homeLines = Array.isArray(homeComp?.linescores) ? homeComp.linescores : [];
+  const awayLines = Array.isArray(awayComp?.linescores) ? awayComp.linescores : [];
+  const maxPeriod = Math.max(3, homeLines.length, awayLines.length);
+
+  return Array.from({ length: maxPeriod }, (_, idx) => ({
+    period: idx + 1,
+    away: asNumber(awayLines[idx]?.value) ?? asNumber(awayLines[idx]?.displayValue) ?? 0,
+    home: asNumber(homeLines[idx]?.value) ?? asNumber(homeLines[idx]?.displayValue) ?? 0
   }));
 }
 
@@ -119,7 +191,7 @@ function normalizeNhlGame(game: any, index: number): CupGame | null {
     playoffRound: gameType === 3 ? 4 : null,
     isStanleyCupFinal: gameType === 3 && new Date(startTimeUTC).getTime() >= FINAL_START,
     broadcast: tv || "ABC, SN, CBC, TVAS",
-    periodScores: getNhlPeriodScores(game),
+    periodScores: getNhlPeriodScores(game, away, home),
     statusText: getStatusText(game, status)
   };
 }
@@ -166,7 +238,7 @@ function normalizeEspnGame(event: any, index: number): CupGame | null {
     broadcast: Array.isArray(competition?.broadcasts)
       ? competition.broadcasts.map((b: any) => b.names?.join(", ")).filter(Boolean).join(", ")
       : "ABC, SN, CBC, TVAS",
-    periodScores: [],
+    periodScores: getEspnPeriodScores(homeComp, awayComp),
     statusText: event?.status?.type?.shortDetail || null
   };
 }

@@ -86,31 +86,22 @@ export default function Home() {
       <section className="hero">
         <p className="kicker">Stanley Cup Finals</p>
         <h1>Wager Tracker</h1>
-
-        <div className="hero-series-total" aria-label="Stanley Cup Final series total">
-          <span className="series-side series-side-vgk">
-            <TeamLogo team="VGK" size={34} />
-            <span>VGK</span>
-            <strong>{data.series.VGK}</strong>
-          </span>
-          <span className="series-separator">-</span>
-          <span className="series-side series-side-car">
-            <strong>{data.series.CAR}</strong>
-            <span>CAR</span>
-            <TeamLogo team="CAR" size={34} />
-          </span>
-        </div>
-
-        <div className="matchup">
+<div className="matchup">
           <div className="team gold-border">
-            <TeamLogo team="VGK" size={72} />
+            <div className="hero-team-score">
+              <TeamLogo team="VGK" size={72} />
+              <strong className="hero-series-number gold">{data.series.VGK}</strong>
+            </div>
             <div className="abbr gold">VGK</div>
             <div className="name">Vegas Golden Knights</div>
             <div className="small">Brett</div>
           </div>
           <div className="vs">VS</div>
           <div className="team red-border">
-            <TeamLogo team="CAR" size={72} />
+            <div className="hero-team-score">
+              <strong className="hero-series-number red">{data.series.CAR}</strong>
+              <TeamLogo team="CAR" size={72} />
+            </div>
             <div className="abbr red">CAR</div>
             <div className="name">Carolina Hurricanes</div>
             <div className="small">Dad</div>
