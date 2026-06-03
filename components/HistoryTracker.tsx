@@ -20,26 +20,37 @@ function gameCategory(game: CupGame) {
 function statusBadge(game: CupGame) {
   if (game.status === "live") return <span className="badge live">● LIVE</span>;
   if (game.status === "final") return <span className="badge">Final</span>;
-  return <span className="badge">Scheduled</span>;
+  return <span className="badge scheduled">● Scheduled</span>;
 }
 
 export function HistoryTracker({ data }: { data: TrackerData }) {
+  const sortedGames = [...data.games].sort(
+    (a, b) => new Date(a.startTimeUTC).getTime() - new Date(b.startTimeUTC).getTime()
+  );
+
   return (
     <section className="card">
       <div className="label">Full VGK vs CAR history</div>
       <h2>Season Matchup History</h2>
       <p className="small">
-        Games before the Stanley Cup Final are regular season unless the NHL feed marks them postseason.
+        Includes previous regular season games, today&apos;s live game, and upcoming scheduled games.
       </p>
 
-      {data.games.map((game) => (
-        <div className={`game-row ${game.status === "live" ? "history-live-row" : ""}`} key={game.id}>
+      {sortedGames.map((game) => (
+        <div
+          className={`game-row ${game.status === "live" ? "history-live-row" : ""} ${
+            game.status === "scheduled" ? "history-scheduled-row" : ""
+          }`}
+          key={`${game.startTimeUTC}-${game.awayTeam}-${game.homeTeam}`}
+        >
           <div>
             <div className="small">
-              {new Date(game.startTimeUTC).toLocaleDateString([], {
+              {new Date(game.startTimeUTC).toLocaleString([], {
                 month: "short",
                 day: "numeric",
-                year: "numeric"
+                year: "numeric",
+                hour: "numeric",
+                minute: "2-digit"
               })}
             </div>
 
@@ -54,6 +65,8 @@ export function HistoryTracker({ data }: { data: TrackerData }) {
               <span>{game.homeTeam}</span>
               <strong>{game.homeScore ?? "-"}</strong>
             </div>
+
+            {game.venue && <div className="small history-venue">{game.venue}</div>}
           </div>
 
           <div className="history-status">
@@ -68,7 +81,7 @@ export function HistoryTracker({ data }: { data: TrackerData }) {
         </div>
       ))}
 
-      {!data.games.length && <p className="small">No VGK vs CAR history found yet.</p>}
+      {!sortedGames.length && <p className="small">No VGK vs CAR history found yet.</p>}
     </section>
   );
 }

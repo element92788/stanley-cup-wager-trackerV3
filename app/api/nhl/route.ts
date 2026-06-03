@@ -167,12 +167,14 @@ function dedupeGames(games: CupGame[]) {
     }
 
     const currentRank =
-      (game.status === "live" ? 3 : game.status === "final" ? 2 : 1) +
-      (game.homeScore !== null && game.awayScore !== null ? 1 : 0);
+      (game.status === "live" ? 5 : game.status === "final" ? 4 : 1) +
+      (game.homeScore !== null && game.awayScore !== null ? 2 : 0) +
+      (game.clock ? 1 : 0);
 
     const existingRank =
-      (existing.status === "live" ? 3 : existing.status === "final" ? 2 : 1) +
-      (existing.homeScore !== null && existing.awayScore !== null ? 1 : 0);
+      (existing.status === "live" ? 5 : existing.status === "final" ? 4 : 1) +
+      (existing.homeScore !== null && existing.awayScore !== null ? 2 : 0) +
+      (existing.clock ? 1 : 0);
 
     if (currentRank > existingRank) map.set(key, game);
   }
@@ -186,8 +188,8 @@ function chooseBestApiGame(manual: CupGame, apiGames: CupGame[]) {
     .map((g) => ({ game: g, hours: timeDiffHours(g.startTimeUTC, manual.startTimeUTC) }))
     .filter((x) => x.hours <= 18)
     .sort((a, b) => {
-      const aRank = (a.game.status === "live" ? 3 : a.game.status === "final" ? 2 : 1) + (a.game.homeScore !== null ? 1 : 0);
-      const bRank = (b.game.status === "live" ? 3 : b.game.status === "final" ? 2 : 1) + (b.game.homeScore !== null ? 1 : 0);
+      const aRank = (a.game.status === "live" ? 5 : a.game.status === "final" ? 4 : 1) + (a.game.homeScore !== null ? 2 : 0);
+      const bRank = (b.game.status === "live" ? 5 : b.game.status === "final" ? 4 : 1) + (b.game.homeScore !== null ? 2 : 0);
       return bRank - aRank || a.hours - b.hours;
     });
 
@@ -218,12 +220,13 @@ function mergeFinalsSchedule(apiGames: CupGame[]) {
 }
 
 function buildTracker(rawGames: CupGame[], source: TrackerData["source"]): TrackerData {
-  const historyOnlyGames = rawGames.filter((g) => !g.isStanleyCupFinal || gameTime(g) < FINAL_START);
-  const games = dedupeGames(historyOnlyGames)
+  const finalsGames = mergeFinalsSchedule(rawGames);
+
+  // Season history should include regular season history PLUS today's/current/upcoming Finals schedule.
+  // Deduping ensures NHL + ESPN + manual entries don't create duplicates.
+  const games = dedupeGames([...rawGames, ...finalsGames])
     .sort((a, b) => gameTime(a) - gameTime(b))
     .map((g, idx) => ({ ...g, gameNumber: idx + 1 }));
-
-  const finalsGames = mergeFinalsSchedule(rawGames);
 
   const series = finalsGames.reduce<Record<TeamAbbr, number>>(
     (acc, game) => {
