@@ -1,7 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900;1000&display=swap');
+
 :root {
   --bg: #07080b;
   --panel: rgba(255,255,255,.08);
-  --panel2: rgba(0,0,0,.32);
   --border: rgba(255,255,255,.13);
   --text: #fff;
   --muted: rgba(255,255,255,.66);
@@ -103,10 +104,9 @@ h2 {
 
 .team-logo {
   object-fit: contain;
-  width: 72px;
-  height: 72px;
-  max-width: 100%;
   filter: drop-shadow(0 8px 14px rgba(0,0,0,.35));
+  max-width: 100%;
+  height: auto;
 }
 
 .header-series-score {
@@ -167,8 +167,9 @@ h2 {
   background: var(--panel);
   backdrop-filter: blur(16px);
   box-shadow: 0 10px 30px rgba(0,0,0,.22);
-  margin-top: 14px;
 }
+
+.loading-card { margin-top: 14px; }
 
 .countdown {
   display: grid;
@@ -201,7 +202,6 @@ h2 {
 .score-card {
   position: relative;
   overflow: hidden;
-  margin-top: 0;
   background:
     radial-gradient(circle at top left, rgba(206,17,38,.24), transparent 18rem),
     radial-gradient(circle at top right, rgba(185,151,91,.26), transparent 18rem),
@@ -254,11 +254,6 @@ h2 {
   padding: 12px 6px;
   background: rgba(0,0,0,.25);
   border: 1px solid rgba(255,255,255,.10);
-}
-
-.score-logo {
-  width: 62px;
-  height: 62px;
 }
 
 .score-num {
@@ -351,8 +346,6 @@ h2 {
   font-weight: 900;
 }
 
-.hidden { display: none !important; }
-
 .goal-overlay {
   position: absolute;
   inset: 14px;
@@ -371,6 +364,37 @@ h2 {
   font-size: clamp(48px, 13vw, 92px);
   font-weight: 1000;
   letter-spacing: -0.08em;
+}
+
+.vgk-goal { box-shadow: 0 0 70px rgba(244,208,111,.45); }
+.car-goal { box-shadow: 0 0 70px rgba(206,17,38,.55); }
+.shake { animation: shake .55s ease; }
+.flash { animation: flash 2.5s ease; }
+
+.empty-text {
+  color: rgba(255,255,255,.68);
+  font-size: 14px;
+}
+
+.toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.toggle button {
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 999px;
+  padding: 9px 10px;
+  background: rgba(255,255,255,.07);
+  color: #fff;
+  font-weight: 800;
+}
+
+.toggle button.active {
+  background: rgba(185,151,91,.24);
+  border-color: rgba(244,208,111,.6);
 }
 
 .wager-row, .game-row, .schedule-row {
@@ -419,11 +443,6 @@ h2 {
   flex-wrap: wrap;
 }
 
-.team-line img {
-  width: 28px;
-  height: 28px;
-}
-
 .footer {
   color: var(--muted);
   text-align: center;
@@ -453,4 +472,19 @@ h2 {
   10% { opacity: 1; transform: scale(1.05); }
   82% { opacity: 1; transform: scale(1); }
   100% { opacity: 0; transform: scale(.92); pointer-events: none; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+
+@keyframes flash {
+  0%, 100% { transform: scale(1); }
+  20% { transform: scale(1.035); }
+  50% { transform: scale(1); }
+  70% { transform: scale(1.025); }
 }

@@ -1,14 +1,18 @@
 # Stanley Cup Wager Tracker
 
-Static no-NPM rebuild.
+Clean reset Next.js build.
 
-This version intentionally has no package.json, Next.js, React, npm, pnpm, or build step.
-Vercel will deploy it as a static site, which avoids the install failures shown in the recent Vercel logs.
+Deploy notes:
+- No `vercel.json`
+- No `.npmrc`
+- No package lock
+- No pnpm/yarn files
+- Vercel should auto-detect Next.js from `package.json`
 
-Files:
-- index.html
-- styles.css
-- app.js
-- manifest.json
-- sw.js
-- vercel.json
+Included:
+- Official 7-game Stanley Cup Final schedule
+- Series score beside the original VGK/CAR logos
+- Duplicate series widget removed
+- Finals-only wager logic
+- Dark live score tracker
+- Period-by-period scoring from NHL gamecenter/right-rail and ESPN fallback
