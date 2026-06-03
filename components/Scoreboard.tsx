@@ -5,6 +5,8 @@ import { CONFIG } from "@/lib/config";
 import type { CupGame } from "@/lib/types";
 import { TeamLogo } from "./TeamLogo";
 
+type NotifyState = "default" | "granted" | "denied" | "unsupported";
+
 function statusText(game: CupGame) {
   if (game.status === "live") {
     const period = game.period ? `Period ${game.period}` : "Live";
@@ -33,11 +35,14 @@ export function Scoreboard({ game }: { game: CupGame | null }) {
   const previousScoreRef = useRef<{ gameId: string; home: number | null; away: number | null } | null>(null);
   const [goalAlert, setGoalAlert] = useState<GoalAlert | null>(null);
   const [flashTeam, setFlashTeam] = useState<"VGK" | "CAR" | null>(null);
-  const [notificationState, setNotificationState] = useState<NotificationPermission | "unsupported">("unsupported");
+  const [notificationState, setNotificationState] = useState<NotifyState>("unsupported");
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     if ("Notification" in window) {
-      setNotificationState(Notification.permission);
+      setNotificationState(window.Notification.permission as NotifyState);
+
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.register("/sw.js").catch(() => {});
       }
@@ -50,7 +55,9 @@ export function Scoreboard({ game }: { game: CupGame | null }) {
   }, [game]);
 
   async function sendMobileNotification(title: string, body: string, icon: string) {
-    if (!("Notification" in window) || Notification.permission !== "granted") return;
+    if (typeof window === "undefined") return;
+    if (!("Notification" in window)) return;
+    if (window.Notification.permission !== "granted") return;
 
     try {
       if ("serviceWorker" in navigator) {
@@ -58,15 +65,13 @@ export function Scoreboard({ game }: { game: CupGame | null }) {
         await registration.showNotification(title, {
           body,
           icon,
-          badge: icon,
-          vibrate: [200, 100, 200],
           tag: `goal-${Date.now()}`
         });
       } else {
-        new Notification(title, { body, icon });
+        new window.Notification(title, { body, icon });
       }
     } catch {
-      new Notification(title, { body, icon });
+      new window.Notification(title, { body, icon });
     }
   }
 
@@ -100,6 +105,7 @@ export function Scoreboard({ game }: { game: CupGame | null }) {
 
       setGoalAlert(alert);
       setFlashTeam(scoringTeam);
+
       sendMobileNotification(
         `GOAL! ${CONFIG.teams[scoringTeam].fullName}`,
         alert.score,
@@ -114,13 +120,15 @@ export function Scoreboard({ game }: { game: CupGame | null }) {
   }, [game, currentScore]);
 
   async function enableNotifications() {
+    if (typeof window === "undefined") return;
+
     if (!("Notification" in window)) {
       setNotificationState("unsupported");
       return;
     }
 
-    const permission = await Notification.requestPermission();
-    setNotificationState(permission);
+    const permission = await window.Notification.requestPermission();
+    setNotificationState(permission as NotifyState);
 
     if (permission === "granted") {
       await sendMobileNotification(
