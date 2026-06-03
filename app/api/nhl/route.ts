@@ -9,16 +9,6 @@ const TEAM_ABBRS = new Set(["VGK", "CAR"]);
 const NHL_SEASON = "20252026";
 const FINAL_START = new Date("2026-06-02T20:00:00-04:00").getTime();
 
-/*
-  Official NHL.com schedule:
-  Game 1: Tue June 2, 8 PM ET - Vegas at Carolina
-  Game 2: Thu June 4, 8 PM ET - Vegas at Carolina
-  Game 3: Sat June 6, 8 PM ET - Carolina at Vegas
-  Game 4: Tue June 9, 8 PM ET - Carolina at Vegas
-  Game 5: Thu June 11, 8 PM ET - Vegas at Carolina, if necessary
-  Game 6: Sun June 14, 8 PM ET - Carolina at Vegas, if necessary
-  Game 7: Wed June 17, 8 PM ET - Vegas at Carolina, if necessary
-*/
 const OFFICIAL_FINALS_SCHEDULE: CupGame[] = [
   { id: "scf-game-1", gameNumber: 1, startTimeUTC: "2026-06-02T20:00:00-04:00", venue: "PNC Arena, Raleigh, NC", homeTeam: "CAR", awayTeam: "VGK", homeScore: null, awayScore: null, status: "scheduled", ifNecessary: false, broadcast: "ABC, SN, CBC, TVAS", gameType: 3, playoffRound: 4, isStanleyCupFinal: true, periodScores: [] },
   { id: "scf-game-2", gameNumber: 2, startTimeUTC: "2026-06-04T20:00:00-04:00", venue: "PNC Arena, Raleigh, NC", homeTeam: "CAR", awayTeam: "VGK", homeScore: null, awayScore: null, status: "scheduled", ifNecessary: false, broadcast: "ABC, SN, CBC, TVAS", gameType: 3, playoffRound: 4, isStanleyCupFinal: true, periodScores: [] },
@@ -57,97 +47,82 @@ function parseEspnStatus(event: any): CupGame["status"] {
 function isVgkCarNhl(game: any) {
   const home = game.homeTeam?.abbrev;
   const away = game.awayTeam?.abbrev;
-  return home && away && TEAM_ABBRS.has(home) && TEAM_ABBRS.has(away) &&
-    ((home === "VGK" && away === "CAR") || (home === "CAR" && away === "VGK"));
+  return home && away && TEAM_ABBRS.has(home) && TEAM_ABBRS.has(away) && ((home === "VGK" && away === "CAR") || (home === "CAR" && away === "VGK"));
 }
 
-function asNumber(value: any): number | null {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim() !== "" && Number.isFinite(Number(value))) return Number(value);
-  return null;
+function teamAbbrFromGoal(goal: any): TeamAbbr | null {
+  const raw = goal?.teamAbbrev?.default || goal?.teamAbbrev || goal?.team?.abbrev || goal?.team?.abbreviation || goal?.team;
+  return raw === "VGK" || raw === "CAR" ? raw : null;
 }
 
-function blankPeriodScores(maxPeriod = 3): PeriodScore[] {
-  return Array.from({ length: maxPeriod }, (_, idx) => ({
-    period: idx + 1,
-    away: 0,
-    home: 0
-  }));
+function periodNumberFromGoal(goal: any, fallback: number) {
+  return Number(goal?.periodDescriptor?.number || goal?.period || goal?.periodNumber || fallback);
 }
 
-function getNhlPeriodScores(game: any, awayTeam: TeamAbbr, homeTeam: TeamAbbr): PeriodScore[] {
-  // NHL Gamecenter landing commonly exposes scoring plays here:
-  // summary.scoring = [{ periodDescriptor: { number }, goals: [{ teamAbbrev: { default: "VGK" } }] }]
-  const scoring = game.summary?.scoring;
-  if (Array.isArray(scoring) && scoring.length) {
-    const maxPeriod = Math.max(3, ...scoring.map((p: any) => Number(p.periodDescriptor?.number || p.period || 1)));
-    const periods = blankPeriodScores(maxPeriod);
-
-    for (const periodBlock of scoring) {
-      const periodNumber = Number(periodBlock.periodDescriptor?.number || periodBlock.period || 1);
-      const row = periods.find((p) => p.period === periodNumber);
-      if (!row || !Array.isArray(periodBlock.goals)) continue;
-
-      for (const goal of periodBlock.goals) {
-        const abbr =
-          goal.teamAbbrev?.default ||
-          goal.teamAbbrev ||
-          goal.team?.abbrev ||
-          goal.team?.abbreviation ||
-          goal.team;
-        if (abbr === awayTeam) row.away = (row.away ?? 0) + 1;
-        if (abbr === homeTeam) row.home = (row.home ?? 0) + 1;
+function getNhlPeriodScores(game: any, away: TeamAbbr, home: TeamAbbr): PeriodScore[] {
+  // NHL gamecenter landing often has summary.scoring: [{ periodDescriptor, goals: [...] }]
+  const summaryScoring = game?.summary?.scoring;
+  if (Array.isArray(summaryScoring) && summaryScoring.length) {
+    const map = new Map<number, PeriodScore>();
+    for (const periodBlock of summaryScoring) {
+      const period = Number(periodBlock?.periodDescriptor?.number || periodBlock?.period || map.size + 1);
+      if (!map.has(period)) map.set(period, { period, away: 0, home: 0 });
+      const row = map.get(period)!;
+      const goals = Array.isArray(periodBlock?.goals) ? periodBlock.goals : [];
+      for (const goal of goals) {
+        const team = teamAbbrFromGoal(goal);
+        if (team === away) row.away = (row.away ?? 0) + 1;
+        if (team === home) row.home = (row.home ?? 0) + 1;
       }
     }
-
-    return periods;
+    return Array.from(map.values()).sort((a, b) => a.period - b.period);
   }
 
-  const source = game.linescore?.periods || game.periodScores || game.periods || [];
+  // Other NHL line-score shapes.
+  const source = game?.linescore?.periods || game?.periodScores || game?.periods || [];
   if (Array.isArray(source) && source.length) {
-    return source.map((p: any, idx: number) => {
-      const away =
-        asNumber(p.away) ??
-        asNumber(p.awayScore) ??
-        asNumber(p.awayTeam?.score) ??
-        asNumber(p.away?.score) ??
-        0;
-
-      const home =
-        asNumber(p.home) ??
-        asNumber(p.homeScore) ??
-        asNumber(p.homeTeam?.score) ??
-        asNumber(p.home?.score) ??
-        0;
-
-      return {
-        period: Number(p.periodDescriptor?.number || p.num || p.period || idx + 1),
-        away,
-        home
-      };
-    });
+    return source.map((p: any, idx: number) => ({
+      period: Number(p?.periodDescriptor?.number || p?.num || p?.period || idx + 1),
+      away: typeof p?.away === "number" ? p.away : typeof p?.awayScore === "number" ? p.awayScore : typeof p?.away?.goals === "number" ? p.away.goals : null,
+      home: typeof p?.home === "number" ? p.home : typeof p?.homeScore === "number" ? p.homeScore : typeof p?.home?.goals === "number" ? p.home.goals : null
+    }));
   }
 
-  return blankPeriodScores(3);
+  // Some feeds have a flat goals array.
+  const goals = game?.summary?.goals || game?.goals || game?.scoringPlays || [];
+  if (Array.isArray(goals) && goals.length) {
+    const map = new Map<number, PeriodScore>();
+    for (const goal of goals) {
+      const period = periodNumberFromGoal(goal, 1);
+      if (!map.has(period)) map.set(period, { period, away: 0, home: 0 });
+      const row = map.get(period)!;
+      const team = teamAbbrFromGoal(goal);
+      if (team === away) row.away = (row.away ?? 0) + 1;
+      if (team === home) row.home = (row.home ?? 0) + 1;
+    }
+    return Array.from(map.values()).sort((a, b) => a.period - b.period);
+  }
+
+  return [];
 }
 
 function getEspnPeriodScores(homeComp: any, awayComp: any): PeriodScore[] {
   const homeLines = Array.isArray(homeComp?.linescores) ? homeComp.linescores : [];
   const awayLines = Array.isArray(awayComp?.linescores) ? awayComp.linescores : [];
-  const maxPeriod = Math.max(3, homeLines.length, awayLines.length);
-
-  return Array.from({ length: maxPeriod }, (_, idx) => ({
+  const length = Math.max(homeLines.length, awayLines.length);
+  if (!length) return [];
+  return Array.from({ length }, (_, idx) => ({
     period: idx + 1,
-    away: asNumber(awayLines[idx]?.value) ?? asNumber(awayLines[idx]?.displayValue) ?? 0,
-    home: asNumber(homeLines[idx]?.value) ?? asNumber(homeLines[idx]?.displayValue) ?? 0
+    away: awayLines[idx]?.value !== undefined ? Number(awayLines[idx].value) : null,
+    home: homeLines[idx]?.value !== undefined ? Number(homeLines[idx].value) : null
   }));
 }
 
 function getStatusText(game: any, status: CupGame["status"]) {
   if (status === "final") return "Final";
-  const period = game.periodDescriptor?.number;
-  const intermission = game.clock?.inIntermission || game.clock?.timeInIntermission;
-  const clock = game.clock?.timeRemaining || game.gameClock || "";
+  const period = game?.periodDescriptor?.number;
+  const intermission = game?.clock?.inIntermission || game?.clock?.timeInIntermission;
+  const clock = game?.clock?.timeRemaining || game?.gameClock || "";
   if (status === "live" && intermission && period) return `End of ${period === 1 ? "1st" : period === 2 ? "2nd" : period === 3 ? "3rd" : `OT${period - 3}`}`;
   if (status === "live" && clock && period) return `${clock} • ${period === 1 ? "1st" : period === 2 ? "2nd" : period === 3 ? "3rd" : `OT${period - 3}`}`;
   if (status === "live") return "Live";
@@ -156,7 +131,6 @@ function getStatusText(game: any, status: CupGame["status"]) {
 
 function normalizeNhlGame(game: any, index: number): CupGame | null {
   if (!isVgkCarNhl(game)) return null;
-
   const home = game.homeTeam.abbrev as TeamAbbr;
   const away = game.awayTeam.abbrev as TeamAbbr;
   const startTimeUTC = game.startTimeUTC || game.gameDate;
@@ -164,16 +138,9 @@ function normalizeNhlGame(game: any, index: number): CupGame | null {
   const awayScore = typeof game.awayTeam?.score === "number" ? game.awayTeam.score : null;
   const status = parseNhlStatus(game);
   const gameType = typeof game.gameType === "number" ? game.gameType : Number(game.gameTypeId ?? 2) || 2;
-
   let winner: TeamAbbr | null = null;
-  if (status === "final" && homeScore !== null && awayScore !== null && homeScore !== awayScore) {
-    winner = homeScore > awayScore ? home : away;
-  }
-
-  const tv = Array.isArray(game.tvBroadcasts)
-    ? game.tvBroadcasts.map((b: any) => b.network || b.name || b.market).filter(Boolean).join(", ")
-    : "";
-
+  if (status === "final" && homeScore !== null && awayScore !== null && homeScore !== awayScore) winner = homeScore > awayScore ? home : away;
+  const tv = Array.isArray(game.tvBroadcasts) ? game.tvBroadcasts.map((b: any) => b.network || b.name || b.market).filter(Boolean).join(", ") : "";
   return {
     id: String(game.id || game.gamePk || `nhl-${startTimeUTC}-${index}`),
     gameNumber: index + 1,
@@ -203,22 +170,16 @@ function normalizeEspnGame(event: any, index: number): CupGame | null {
   const awayComp = competitors.find((c: any) => c.homeAway === "away");
   const homeAbbr = homeComp?.team?.abbreviation as TeamAbbr | undefined;
   const awayAbbr = awayComp?.team?.abbreviation as TeamAbbr | undefined;
-
   if (!homeAbbr || !awayAbbr) return null;
   if (!TEAM_ABBRS.has(homeAbbr) || !TEAM_ABBRS.has(awayAbbr)) return null;
   if (!((homeAbbr === "VGK" && awayAbbr === "CAR") || (homeAbbr === "CAR" && awayAbbr === "VGK"))) return null;
-
   const startTimeUTC = event.date;
   const homeScore = homeComp?.score !== undefined && homeComp?.score !== "" ? Number(homeComp.score) : null;
   const awayScore = awayComp?.score !== undefined && awayComp?.score !== "" ? Number(awayComp.score) : null;
   const status = parseEspnStatus(event);
   const isFinal = new Date(startTimeUTC).getTime() >= FINAL_START;
-
   let winner: TeamAbbr | null = null;
-  if (status === "final" && homeScore !== null && awayScore !== null && homeScore !== awayScore) {
-    winner = homeScore > awayScore ? homeAbbr : awayAbbr;
-  }
-
+  if (status === "final" && homeScore !== null && awayScore !== null && homeScore !== awayScore) winner = homeScore > awayScore ? homeAbbr : awayAbbr;
   return {
     id: String(event.id || `espn-${startTimeUTC}-${index}`),
     gameNumber: index + 1,
@@ -235,56 +196,35 @@ function normalizeEspnGame(event: any, index: number): CupGame | null {
     gameType: isFinal ? 3 : 2,
     playoffRound: isFinal ? 4 : null,
     isStanleyCupFinal: isFinal,
-    broadcast: Array.isArray(competition?.broadcasts)
-      ? competition.broadcasts.map((b: any) => b.names?.join(", ")).filter(Boolean).join(", ")
-      : "ABC, SN, CBC, TVAS",
+    broadcast: Array.isArray(competition?.broadcasts) ? competition.broadcasts.map((b: any) => b.names?.join(", ")).filter(Boolean).join(", ") : "ABC, SN, CBC, TVAS",
     periodScores: getEspnPeriodScores(homeComp, awayComp),
     statusText: event?.status?.type?.shortDetail || null
   };
 }
 
-function gameTime(game: CupGame) {
-  return new Date(game.startTimeUTC).getTime();
-}
-
-function timeDiffHours(aIso: string, bIso: string) {
-  return Math.abs(new Date(aIso).getTime() - new Date(bIso).getTime()) / 36e5;
-}
-
-function sameMatchup(a: CupGame, b: CupGame) {
-  return a.homeTeam === b.homeTeam && a.awayTeam === b.awayTeam;
-}
+function gameTime(game: CupGame) { return new Date(game.startTimeUTC).getTime(); }
+function timeDiffHours(aIso: string, bIso: string) { return Math.abs(new Date(aIso).getTime() - new Date(bIso).getTime()) / 36e5; }
+function sameMatchup(a: CupGame, b: CupGame) { return a.homeTeam === b.homeTeam && a.awayTeam === b.awayTeam; }
 
 function dedupeGames(games: CupGame[]) {
   const map = new Map<string, CupGame>();
+  const rank = (g: CupGame) => (g.status === "live" ? 5 : g.status === "final" ? 4 : 1) + (g.homeScore !== null && g.awayScore !== null ? 2 : 0) + (g.periodScores?.length ? 2 : 0);
   for (const game of games) {
     const day = new Date(game.startTimeUTC).toISOString().slice(0, 10);
     const key = `${day}-${game.awayTeam}-${game.homeTeam}`;
     const existing = map.get(key);
-    if (!existing) {
-      map.set(key, game);
-      continue;
-    }
-
-    const rank = (g: CupGame) =>
-      (g.status === "live" ? 5 : g.status === "final" ? 4 : 1) +
-      (g.homeScore !== null && g.awayScore !== null ? 2 : 0) +
-      (g.periodScores?.length ? 1 : 0);
-
-    if (rank(game) > rank(existing)) map.set(key, game);
+    if (!existing || rank(game) > rank(existing)) map.set(key, game);
   }
   return Array.from(map.values());
 }
 
 function chooseBestApiGame(manual: CupGame, apiGames: CupGame[]) {
+  const rank = (g: CupGame) => (g.status === "live" ? 5 : g.status === "final" ? 4 : 1) + (g.homeScore !== null ? 2 : 0) + (g.periodScores?.length ? 2 : 0);
   const same = apiGames
     .filter((g) => sameMatchup(g, manual))
     .map((g) => ({ game: g, hours: timeDiffHours(g.startTimeUTC, manual.startTimeUTC) }))
     .filter((x) => x.hours <= 18)
-    .sort((a, b) => {
-      const rank = (g: CupGame) => (g.status === "live" ? 5 : g.status === "final" ? 4 : 1) + (g.homeScore !== null ? 2 : 0) + (g.periodScores?.length ? 1 : 0);
-      return rank(b.game) - rank(a.game) || a.hours - b.hours;
-    });
+    .sort((a, b) => rank(b.game) - rank(a.game) || a.hours - b.hours);
   return same[0]?.game || null;
 }
 
@@ -315,38 +255,19 @@ function mergeFinalsSchedule(apiGames: CupGame[]) {
 function buildTracker(rawGames: CupGame[], source: TrackerData["source"]): TrackerData {
   const finalsGames = mergeFinalsSchedule(rawGames);
   const regularSeasonHistory = rawGames.filter((g) => !g.isStanleyCupFinal && gameTime(g) < FINAL_START);
-
-  const games = dedupeGames([...regularSeasonHistory, ...finalsGames])
-    .sort((a, b) => gameTime(a) - gameTime(b))
-    .map((g, idx) => ({ ...g, gameNumber: idx + 1 }));
-
-  const series = finalsGames.reduce<Record<TeamAbbr, number>>(
-    (acc, game) => {
-      if (game.winner) acc[game.winner] += 1;
-      return acc;
-    },
-    { VGK: 0, CAR: 0 }
-  );
-
+  const games = dedupeGames([...regularSeasonHistory, ...finalsGames]).sort((a, b) => gameTime(a) - gameTime(b)).map((g, idx) => ({ ...g, gameNumber: idx + 1 }));
+  const series = finalsGames.reduce<Record<TeamAbbr, number>>((acc, game) => { if (game.winner) acc[game.winner] += 1; return acc; }, { VGK: 0, CAR: 0 });
   const cupWinner = series.VGK >= 4 ? "VGK" : series.CAR >= 4 ? "CAR" : null;
   const now = Date.now();
   const liveGame = finalsGames.find((g) => g.status === "live") || null;
   const nextGame = finalsGames.find((g) => g.status === "scheduled" && gameTime(g) >= now - 1000 * 60 * 60 * 8) || null;
-
   return { generatedAt: new Date().toISOString(), source, games, finalsGames, nextGame, liveGame, series, cupWinner };
 }
 
-function espnDateString(date: Date) {
-  return date.toISOString().slice(0, 10).replaceAll("-", "");
-}
-
+function espnDateString(date: Date) { return date.toISOString().slice(0, 10).replaceAll("-", ""); }
 function uniqueDatesForEspn() {
   const dates = new Set<string>();
-  for (const offset of [-1, 0, 1]) {
-    const d = new Date();
-    d.setUTCDate(d.getUTCDate() + offset);
-    dates.add(espnDateString(d));
-  }
+  for (const offset of [-1, 0, 1]) { const d = new Date(); d.setUTCDate(d.getUTCDate() + offset); dates.add(espnDateString(d)); }
   for (const game of OFFICIAL_FINALS_SCHEDULE) dates.add(espnDateString(new Date(game.startTimeUTC)));
   return Array.from(dates);
 }
@@ -358,28 +279,18 @@ export async function GET() {
       getJson(`https://api-web.nhle.com/v1/club-schedule-season/CAR/${NHL_SEASON}`),
       getJson("https://api-web.nhle.com/v1/score/now")
     ]);
-
     const nhlRawGames = [...(vgkSchedule?.games || []), ...(carSchedule?.games || []), ...(scoreNow?.games || [])];
     const nhlGames = nhlRawGames.map((raw, index) => normalizeNhlGame(raw, index)).filter(Boolean) as CupGame[];
-
-    const liveNhlCandidate = nhlGames.find((g) => g.status === "live");
-    if (liveNhlCandidate?.id) {
-      const landing = await getJson(`https://api-web.nhle.com/v1/gamecenter/${liveNhlCandidate.id}/landing`);
+    const liveOrFinalCandidates = nhlGames.filter((g) => g.status === "live" || g.status === "final").slice(-3);
+    for (const candidate of liveOrFinalCandidates) {
+      const landing = await getJson(`https://api-web.nhle.com/v1/gamecenter/${candidate.id}/landing`);
       const normalizedLanding = landing ? normalizeNhlGame(landing, 9999) : null;
       if (normalizedLanding) nhlGames.push(normalizedLanding);
     }
-
-    const espnPayloads = await Promise.all(
-      uniqueDatesForEspn().map((date) => getJson(`https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/scoreboard?dates=${date}`))
-    );
+    const espnPayloads = await Promise.all(uniqueDatesForEspn().map((date) => getJson(`https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/scoreboard?dates=${date}`)));
     const espnGames = espnPayloads.flatMap((payload) => payload?.events || []).map((event, index) => normalizeEspnGame(event, index)).filter(Boolean) as CupGame[];
-
-    return NextResponse.json(buildTracker([...nhlGames, ...espnGames], "nhl-api"), {
-      headers: { "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate", Pragma: "no-cache", Expires: "0" }
-    });
+    return NextResponse.json(buildTracker([...nhlGames, ...espnGames], "nhl-api"), { headers: { "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate", Pragma: "no-cache", Expires: "0" } });
   } catch {
-    return NextResponse.json(buildTracker([], "fallback"), {
-      headers: { "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate", Pragma: "no-cache", Expires: "0" }
-    });
+    return NextResponse.json(buildTracker([], "fallback"), { headers: { "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate", Pragma: "no-cache", Expires: "0" } });
   }
 }

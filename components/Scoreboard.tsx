@@ -56,7 +56,7 @@ function getPeriodScores(game: CupGame): PeriodScore[] {
   const maxPeriod = Math.max(3, ...incoming.map((p) => p.period));
   return Array.from({ length: maxPeriod }, (_, idx) => {
     const period = idx + 1;
-    return incoming.find((p) => p.period === period) || { period, away: 0, home: 0 };
+    return incoming.find((p) => p.period === period) || { period, away: null, home: null };
   });
 }
 
@@ -229,13 +229,13 @@ export function Scoreboard({
 
         <div className="table-team team-code">{game.awayTeam}</div>
         {periods.map((p) => (
-          <div key={`${game.awayTeam}-${p.period}`}>{p.away ?? 0}</div>
+          <div key={`${game.awayTeam}-${p.period}`}>{p.away ?? "-"}</div>
         ))}
         <div className="table-total">{scoreFor(game, game.awayTeam)}</div>
 
         <div className="table-team team-code">{game.homeTeam}</div>
         {periods.map((p) => (
-          <div key={`${game.homeTeam}-${p.period}`}>{p.home ?? 0}</div>
+          <div key={`${game.homeTeam}-${p.period}`}>{p.home ?? "-"}</div>
         ))}
         <div className="table-total">{scoreFor(game, game.homeTeam)}</div>
       </div>
