@@ -1,0 +1,158 @@
+
+/* Google-style live score card */
+
+.google-score-card {
+  background: rgba(255,255,255,.96);
+  color: #222;
+}
+
+.google-score-card .small {
+  color: rgba(0,0,0,.6);
+}
+
+.google-score-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.league-label {
+  color: rgba(0,0,0,.62);
+  font-size: 26px;
+  letter-spacing: .02em;
+}
+
+.game-state,
+.live-game-state {
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.live-game-state {
+  color: #188038;
+}
+
+.game-state {
+  color: rgba(0,0,0,.58);
+}
+
+.google-score-main {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.google-team {
+  display: grid;
+  grid-template-rows: 78px auto auto auto;
+  justify-items: center;
+  text-align: center;
+  min-width: 0;
+}
+
+.google-score-number {
+  font-size: clamp(56px, 15vw, 82px);
+  font-weight: 500;
+  line-height: .95;
+  color: #111;
+}
+
+.google-score-dash {
+  align-self: center;
+  color: #222;
+  font-size: clamp(42px, 12vw, 68px);
+  font-weight: 500;
+  padding-top: 38px;
+}
+
+.google-team-name {
+  font-size: clamp(24px, 7vw, 42px);
+  line-height: 1.1;
+  color: #222;
+  word-break: keep-all;
+}
+
+.google-team-record {
+  margin-top: 6px;
+  font-size: 18px;
+  color: rgba(0,0,0,.58);
+}
+
+.google-game-subtitle {
+  margin: 28px 0 20px;
+  text-align: center;
+  color: rgba(0,0,0,.62);
+  font-size: clamp(20px, 5vw, 32px);
+}
+
+.period-score-table {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) repeat(4, 44px);
+  gap: 12px;
+  border-top: 2px solid rgba(0,0,0,.16);
+  border-bottom: 2px solid rgba(0,0,0,.16);
+  padding: 20px 8px;
+  color: #222;
+  font-size: 22px;
+  align-items: center;
+}
+
+.period-header {
+  color: rgba(0,0,0,.58);
+}
+
+.team-column {
+  text-align: left;
+}
+
+.period-team {
+  font-weight: 500;
+  text-align: left;
+}
+
+.period-score-table > div:not(.team-column):not(.period-team) {
+  text-align: center;
+}
+
+.compact-alert-row {
+  margin-top: 14px;
+}
+
+.google-score-card .notify-button {
+  color: #222;
+  border-color: rgba(0,0,0,.16);
+  background: rgba(0,0,0,.05);
+}
+
+.google-score-card .badge {
+  color: #222;
+  background: rgba(0,0,0,.08);
+}
+
+.google-score-card .goal-alert {
+  color: white;
+}
+
+@media (max-width: 440px) {
+  .google-team-name {
+    font-size: 24px;
+  }
+
+  .period-score-table {
+    grid-template-columns: minmax(88px, 1fr) repeat(4, 34px);
+    gap: 8px;
+    font-size: 18px;
+  }
+
+  .league-label {
+    font-size: 22px;
+  }
+
+  .game-state,
+  .live-game-state {
+    font-size: 17px;
+  }
+}

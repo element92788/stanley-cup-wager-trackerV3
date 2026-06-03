@@ -8,10 +8,12 @@ import { TeamLogo } from "./TeamLogo";
 type NotifyState = "default" | "granted" | "denied" | "unsupported";
 
 function statusText(game: CupGame) {
+  if (game.statusText) return game.statusText;
+
   if (game.status === "live") {
-    const period = game.period ? `Period ${game.period}` : "Live";
-    const clock = game.clock ? ` • ${game.clock}` : "";
-    return `${period}${clock}`;
+    if (game.clock && game.period) return `${game.clock} • ${periodLabel(game.period)}`;
+    if (game.period) return `Live • ${periodLabel(game.period)}`;
+    return "Live";
   }
 
   if (game.status === "final") return "Final";
@@ -23,6 +25,32 @@ function statusText(game: CupGame) {
     hour: "numeric",
     minute: "2-digit"
   });
+}
+
+function periodLabel(period?: number | null) {
+  if (!period) return "";
+  if (period === 1) return "1st";
+  if (period === 2) return "2nd";
+  if (period === 3) return "3rd";
+  return `OT${period - 3}`;
+}
+
+function displayTeamName(team: "VGK" | "CAR") {
+  return team === "VGK" ? "Golden Knights" : "Hurricanes";
+}
+
+function totalForTeam(game: CupGame, team: "VGK" | "CAR") {
+  return team === game.awayTeam ? game.awayScore ?? "-" : game.homeScore ?? "-";
+}
+
+function getPeriodScores(game: CupGame) {
+  if (game.periodScores?.length) return game.periodScores;
+
+  return [
+    { period: 1, away: null, home: null },
+    { period: 2, away: null, home: null },
+    { period: 3, away: null, home: null }
+  ];
 }
 
 type GoalAlert = {
@@ -149,8 +177,10 @@ export function Scoreboard({ game }: { game: CupGame | null }) {
     );
   }
 
+  const periods = getPeriodScores(game);
+
   return (
-    <section className={`card scoreboard-card ${goalAlert ? "goal-shake" : ""}`}>
+    <section className={`card scoreboard-card google-score-card ${goalAlert ? "goal-shake" : ""}`}>
       {goalAlert && (
         <div className={`goal-alert ${goalAlert.team === "VGK" ? "goal-vgk" : "goal-car"}`}>
           <div className="goal-alert-big">GOAL!</div>
@@ -159,18 +189,58 @@ export function Scoreboard({ game }: { game: CupGame | null }) {
         </div>
       )}
 
-      <div className="scoreboard-top">
-        <div>
-          <div className="label">
-            {game.status === "live"
-              ? "Live finals score"
-              : game.status === "final"
-                ? "Latest finals score"
-                : "Next finals matchup"}
-          </div>
-          <h2>Final Game {game.gameNumber}</h2>
+      <div className="google-score-header">
+        <div className="league-label">NHL</div>
+        <div className={game.status === "live" ? "live-game-state" : "game-state"}>
+          {statusText(game)}
+        </div>
+      </div>
+
+      <div className="google-score-main">
+        <div className={`google-team ${flashTeam === game.awayTeam ? "score-flash" : ""}`}>
+          <TeamLogo team={game.awayTeam} size={72} />
+          <div className="google-score-number">{game.awayScore ?? "-"}</div>
+          <div className="google-team-name">{displayTeamName(game.awayTeam)}</div>
+          <div className="google-team-record">(0 - 0)</div>
         </div>
 
+        <div className="google-score-dash">-</div>
+
+        <div className={`google-team ${flashTeam === game.homeTeam ? "score-flash" : ""}`}>
+          <TeamLogo team={game.homeTeam} size={72} />
+          <div className="google-score-number">{game.homeScore ?? "-"}</div>
+          <div className="google-team-name">{displayTeamName(game.homeTeam)}</div>
+          <div className="google-team-record">(0 - 0)</div>
+        </div>
+      </div>
+
+      <div className="google-game-subtitle">
+        Stanley Cup Final • Game {game.gameNumber}
+      </div>
+
+      <div className="period-score-table">
+        <div className="period-header team-column">Team</div>
+        {periods.map((p) => (
+          <div className="period-header" key={p.period}>
+            {p.period <= 3 ? p.period : `OT${p.period - 3}`}
+          </div>
+        ))}
+        <div className="period-header">T</div>
+
+        <div className="period-team">{game.awayTeam}</div>
+        {periods.map((p) => (
+          <div key={`${game.awayTeam}-${p.period}`}>{p.away ?? "-"}</div>
+        ))}
+        <div>{totalForTeam(game, game.awayTeam)}</div>
+
+        <div className="period-team">{game.homeTeam}</div>
+        {periods.map((p) => (
+          <div key={`${game.homeTeam}-${p.period}`}>{p.home ?? "-"}</div>
+        ))}
+        <div>{totalForTeam(game, game.homeTeam)}</div>
+      </div>
+
+      <div className="scoreboard-top compact-alert-row">
         {notificationState !== "granted" && notificationState !== "unsupported" && (
           <button className="notify-button" onClick={enableNotifications}>
             Enable Goal Alerts
@@ -180,28 +250,6 @@ export function Scoreboard({ game }: { game: CupGame | null }) {
         {notificationState === "granted" && <span className="badge">Alerts On</span>}
       </div>
 
-      {[game.awayTeam, game.homeTeam].map((team) => (
-        <div
-          className={`score-row animated-score-row ${
-            flashTeam === team ? "score-flash" : ""
-          } ${team === "VGK" ? "flash-vgk" : "flash-car"}`}
-          key={team}
-        >
-          <div className="team-line">
-            <TeamLogo team={team} size={40} />
-            <div>
-              <strong>{team}</strong>
-              <div className="small">{CONFIG.teams[team].fullName}</div>
-            </div>
-          </div>
-
-          <div className="score">
-            {team === game.awayTeam ? game.awayScore ?? "-" : game.homeScore ?? "-"}
-          </div>
-        </div>
-      ))}
-
-      <p className="small">{statusText(game)}</p>
       <p className="small">
         Mobile alerts work best after adding this site to your phone’s home screen and tapping Enable Goal Alerts.
       </p>

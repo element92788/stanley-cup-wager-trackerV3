@@ -2,6 +2,12 @@ import type { TeamAbbr } from "./config";
 
 export type GameStatus = "scheduled" | "live" | "final";
 
+export type PeriodScore = {
+  period: number;
+  away: number | null;
+  home: number | null;
+};
+
 export type CupGame = {
   id: string;
   gameNumber: number;
@@ -20,6 +26,8 @@ export type CupGame = {
   isStanleyCupFinal?: boolean;
   ifNecessary?: boolean;
   broadcast?: string;
+  periodScores?: PeriodScore[];
+  statusText?: string | null;
 };
 
 export type TrackerData = {
