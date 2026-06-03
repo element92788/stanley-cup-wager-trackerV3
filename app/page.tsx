@@ -8,32 +8,38 @@ import { Scoreboard } from "@/components/Scoreboard";
 import { WagerTracker } from "@/components/WagerTracker";
 import { SeriesTracker } from "@/components/SeriesTracker";
 import { HistoryTracker } from "@/components/HistoryTracker";
+import { FullSchedule } from "@/components/FullSchedule";
 import { TeamLogo } from "@/components/TeamLogo";
 
-const fallbackGame = {
-  id: "initial",
-  gameNumber: 1,
-  startTimeUTC: CONFIG.firstGamePuckDrop,
-  venue: "PNC Arena, Raleigh, NC",
-  homeTeam: "CAR" as const,
-  awayTeam: "VGK" as const,
-  homeScore: null,
-  awayScore: null,
-  status: "scheduled" as const,
-  period: null,
-  clock: null,
-  winner: null,
-  gameType: 3,
-  playoffRound: 4,
-  isStanleyCupFinal: true
-};
+const fallbackFinals = [
+  {
+    id: "scf-game-1",
+    gameNumber: 1,
+    startTimeUTC: CONFIG.firstGamePuckDrop,
+    venue: "PNC Arena, Raleigh, NC",
+    homeTeam: "CAR" as const,
+    awayTeam: "VGK" as const,
+    homeScore: null,
+    awayScore: null,
+    status: "scheduled" as const,
+    period: null,
+    clock: null,
+    winner: null,
+    gameType: 3,
+    playoffRound: 4,
+    isStanleyCupFinal: true,
+    ifNecessary: false,
+    broadcast: "ABC, SN, CBC, TVAS",
+    periodScores: []
+  }
+];
 
 const fallback: TrackerData = {
   generatedAt: new Date().toISOString(),
   source: "fallback",
-  games: [fallbackGame],
-  finalsGames: [fallbackGame],
-  nextGame: fallbackGame,
+  games: fallbackFinals,
+  finalsGames: fallbackFinals,
+  nextGame: fallbackFinals[0],
   liveGame: null,
   series: { VGK: 0, CAR: 0 },
   cupWinner: null
@@ -69,7 +75,12 @@ export default function Home() {
     return () => window.clearInterval(timer);
   }, []);
 
-  const latestFinalsGame = data.liveGame || [...data.finalsGames].reverse().find((g) => g.status === "final") || null;
+  const latestFinalsGame =
+    data.liveGame ||
+    [...data.finalsGames].reverse().find((g) => g.status === "final") ||
+    data.nextGame ||
+    data.finalsGames[0] ||
+    null;
 
   return (
     <main>
@@ -93,30 +104,31 @@ export default function Home() {
           </div>
         </div>
 
-        <p className="small" style={{ marginTop: 14 }}>
+        <p className="small hero-note">
           Wager counts Stanley Cup Final games only • $10 per Final game won • $100 Cup winner bonus
         </p>
       </section>
 
       {loading ? (
-        <section className="card" style={{ marginTop: 14 }}>
+        <section className="card loading-card">
           <h2>Loading tracker...</h2>
           <p className="small">Pulling NHL schedule and score data.</p>
         </section>
       ) : (
         <div className="grid">
           <Countdown nextGame={data.nextGame} liveGame={data.liveGame} />
+          <Scoreboard game={latestFinalsGame} />
           <div className="grid two">
-            <Scoreboard game={latestFinalsGame} />
             <WagerTracker data={data} perspective={perspective} setPerspective={setPerspective} />
+            <SeriesTracker data={data} />
           </div>
-          <SeriesTracker data={data} />
+          <FullSchedule data={data} />
           <HistoryTracker data={data} />
         </div>
       )}
 
       <p className="footer">
-        Data source: {data.source === "nhl-api" ? "NHL public API" : "fallback schedule"} • Updates every 30 seconds
+        Data source: {data.source === "nhl-api" ? "NHL public API + ESPN fallback" : "fallback schedule"} • Updates every 30 seconds
       </p>
     </main>
   );

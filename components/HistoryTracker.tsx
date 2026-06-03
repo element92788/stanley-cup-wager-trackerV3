@@ -1,19 +1,12 @@
 import type { TrackerData, CupGame } from "@/lib/types";
 import { TeamLogo } from "./TeamLogo";
 
-const FINAL_START = new Date("2026-06-03T00:00:00Z").getTime();
+const FINAL_START = new Date("2026-06-02T20:00:00-04:00").getTime();
 
 function gameCategory(game: CupGame) {
   const gameTime = new Date(game.startTimeUTC).getTime();
-
-  if (game.isStanleyCupFinal && gameTime >= FINAL_START) {
-    return "Postseason • Stanley Cup Final";
-  }
-
-  if (game.gameType === 3 || game.playoffRound) {
-    return "Postseason";
-  }
-
+  if (game.isStanleyCupFinal && gameTime >= FINAL_START) return "Postseason • Stanley Cup Final";
+  if (game.gameType === 3 || game.playoffRound) return "Postseason";
   return "Regular season";
 }
 
@@ -32,9 +25,7 @@ export function HistoryTracker({ data }: { data: TrackerData }) {
     <section className="card">
       <div className="label">Full VGK vs CAR history</div>
       <h2>Season Matchup History</h2>
-      <p className="small">
-        Shows regular season matchups plus the 7 Stanley Cup Final games only.
-      </p>
+      <p className="small">Regular season history plus the official 7-game Stanley Cup Final schedule.</p>
 
       {sortedGames.map((game) => (
         <div

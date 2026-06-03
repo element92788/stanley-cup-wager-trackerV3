@@ -24,17 +24,23 @@ export function WagerTracker({
       <h2>Viewing {owner}'s side</h2>
 
       <div className="segmented">
-        <button className={perspective === "VGK" ? "active" : ""} onClick={() => setPerspective("VGK")}>Brett • VGK</button>
-        <button className={perspective === "CAR" ? "active" : ""} onClick={() => setPerspective("CAR")}>Dad • CAR</button>
+        <button className={perspective === "VGK" ? "active" : ""} onClick={() => setPerspective("VGK")}>
+          Brett • VGK
+        </button>
+        <button className={perspective === "CAR" ? "active" : ""} onClick={() => setPerspective("CAR")}>
+          Dad • CAR
+        </button>
       </div>
 
-      <div className="wager-row"><span>{owner} Stanley Cup Final wins</span><strong>{wager.myWins}</strong></div>
-      <div className="wager-row"><span>{otherOwner} Stanley Cup Final wins</span><strong>{wager.theirWins}</strong></div>
-      <div className="wager-row"><span>$10 per Final game net</span><strong className={wager.gameNet >= 0 ? "positive" : "negative"}>{money(wager.gameNet)}</strong></div>
+      <div className="wager-row"><span>{owner} Finals wins</span><strong>{wager.myWins}</strong></div>
+      <div className="wager-row"><span>{otherOwner} Finals wins</span><strong>{wager.theirWins}</strong></div>
+      <div className="wager-row"><span>$10 per Finals win net</span><strong className={wager.gameNet >= 0 ? "positive" : "negative"}>{money(wager.gameNet)}</strong></div>
       <div className="wager-row"><span>$100 Cup bonus</span><strong className={wager.cupNet >= 0 ? "positive" : "negative"}>{money(wager.cupNet)}</strong></div>
       <div className="wager-row"><span>Current total</span><strong className={`money ${totalClass}`}>{money(wager.total)}</strong></div>
 
-      <p className="small">Only Stanley Cup Final games count toward the wager. Regular season games are history only.</p>
+      <p className="small">
+        Regular season games are history only. The wager uses Stanley Cup Final games only.
+      </p>
     </section>
   );
 }

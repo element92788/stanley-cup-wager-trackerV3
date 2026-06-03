@@ -5,14 +5,11 @@ export function calculateWager(data: TrackerData, perspective: TeamAbbr) {
   const other: TeamAbbr = perspective === "VGK" ? "CAR" : "VGK";
   const myWins = data.series[perspective] || 0;
   const theirWins = data.series[other] || 0;
-
   const gameNet = (myWins - theirWins) * CONFIG.gameWinValue;
 
   let cupNet = 0;
   if (data.cupWinner === perspective) cupNet = CONFIG.cupBonusValue;
   if (data.cupWinner === other) cupNet = -CONFIG.cupBonusValue;
-
-  const total = gameNet + cupNet;
 
   return {
     perspective,
@@ -21,7 +18,7 @@ export function calculateWager(data: TrackerData, perspective: TeamAbbr) {
     theirWins,
     gameNet,
     cupNet,
-    total,
+    total: gameNet + cupNet,
     possibleIfWinCup: gameNet + CONFIG.cupBonusValue,
     possibleIfLoseCup: gameNet - CONFIG.cupBonusValue
   };

@@ -33,10 +33,10 @@ export type CupGame = {
 export type TrackerData = {
   generatedAt: string;
   source: "nhl-api" | "fallback";
-  games: CupGame[];
-  finalsGames: CupGame[];
+  games: CupGame[];        // season matchup history + exact 7 Finals games
+  finalsGames: CupGame[];  // exact 7 Stanley Cup Final games only
   nextGame: CupGame | null;
   liveGame: CupGame | null;
-  series: Record<TeamAbbr, number>;
+  series: Record<TeamAbbr, number>; // Finals only
   cupWinner: TeamAbbr | null;
 };

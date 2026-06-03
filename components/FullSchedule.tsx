@@ -17,13 +17,11 @@ export function FullSchedule({ data }: { data: TrackerData }) {
     <section className="card">
       <div className="label">Full Stanley Cup Final schedule</div>
       <h2>Best-of-7 Schedule</h2>
-      <p className="small">
-        This section drives the countdown and wager. Regular season games remain in history only.
-      </p>
+      <p className="small">Only these 7 Finals games count toward the wager.</p>
 
       {data.finalsGames.map((game) => (
         <div className="schedule-row" key={game.id}>
-          <div className="schedule-game-number">
+          <div className="schedule-number">
             <strong>Game {game.gameNumber}</strong>
             {game.ifNecessary && <span className="small">If necessary</span>}
           </div>
@@ -45,13 +43,13 @@ export function FullSchedule({ data }: { data: TrackerData }) {
             <div className="small">{game.broadcast || "Broadcast TBD"}</div>
           </div>
 
-          <div>
-            {game.status === "final" && game.winner ? (
+          <div className="schedule-status">
+            {game.status === "live" ? (
+              <span className="badge live">● LIVE</span>
+            ) : game.status === "final" && game.winner ? (
               <span className="badge">{game.winner} won</span>
-            ) : game.status === "live" ? (
-              <span className="badge live">LIVE</span>
             ) : (
-              <span className="badge">Scheduled</span>
+              <span className="badge scheduled">● Scheduled</span>
             )}
           </div>
         </div>

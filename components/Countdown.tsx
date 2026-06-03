@@ -5,11 +5,12 @@ import type { CupGame } from "@/lib/types";
 
 function parts(ms: number) {
   const safe = Math.max(0, ms);
-  const days = Math.floor(safe / 86400000);
-  const hours = Math.floor((safe % 86400000) / 3600000);
-  const minutes = Math.floor((safe % 3600000) / 60000);
-  const seconds = Math.floor((safe % 60000) / 1000);
-  return { days, hours, minutes, seconds };
+  return {
+    days: Math.floor(safe / 86400000),
+    hours: Math.floor((safe % 86400000) / 3600000),
+    minutes: Math.floor((safe % 3600000) / 60000),
+    seconds: Math.floor((safe % 60000) / 1000)
+  };
 }
 
 export function Countdown({ nextGame, liveGame }: { nextGame: CupGame | null; liveGame: CupGame | null }) {
@@ -26,8 +27,8 @@ export function Countdown({ nextGame, liveGame }: { nextGame: CupGame | null; li
     return (
       <section className="card">
         <div className="label">Stanley Cup Final is live</div>
-        <h2>Current puck drop is underway</h2>
-        <span className="badge live">LIVE NOW</span>
+        <h2>Game {liveGame.gameNumber} is underway</h2>
+        <span className="badge live">● LIVE NOW</span>
       </section>
     );
   }
@@ -35,7 +36,7 @@ export function Countdown({ nextGame, liveGame }: { nextGame: CupGame | null; li
   return (
     <section className="card">
       <div className="label">Next Stanley Cup Final puck drop</div>
-      <h2>{nextGame ? `Game ${nextGame.gameNumber}` : "Schedule pending"}</h2>
+      <h2>{nextGame ? `Game ${nextGame.gameNumber}` : "Finals complete or schedule pending"}</h2>
       {nextGame ? (
         <>
           <p className="small">
@@ -56,7 +57,7 @@ export function Countdown({ nextGame, liveGame }: { nextGame: CupGame | null; li
           </div>
         </>
       ) : (
-        <p className="small">No upcoming Stanley Cup Final game found yet. The wager will not count regular season games.</p>
+        <p className="small">No upcoming Stanley Cup Final game found.</p>
       )}
     </section>
   );
