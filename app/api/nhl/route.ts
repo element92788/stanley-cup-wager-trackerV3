@@ -197,6 +197,7 @@ function chooseBestApiGame(manual: CupGame, apiGames: CupGame[]) {
 }
 
 function mergeFinalsSchedule(apiGames: CupGame[]) {
+  // Always return exactly 7 games. Never append API games here.
   return MANUAL_FINALS_SCHEDULE.map((manual) => {
     const api = chooseBestApiGame(manual, apiGames);
     if (!api) return manual;
@@ -216,15 +217,15 @@ function mergeFinalsSchedule(apiGames: CupGame[]) {
       gameType: 3,
       playoffRound: 4
     };
-  });
+  }).slice(0, 7);
 }
 
 function buildTracker(rawGames: CupGame[], source: TrackerData["source"]): TrackerData {
   const finalsGames = mergeFinalsSchedule(rawGames);
 
-  // Season history should include regular season history PLUS today's/current/upcoming Finals schedule.
-  // Deduping ensures NHL + ESPN + manual entries don't create duplicates.
-  const games = dedupeGames([...rawGames, ...finalsGames])
+  // Bottom history = regular season/past matchup history + current/remaining 7-game Finals schedule exactly once.
+  const regularSeasonHistory = rawGames.filter((g) => !g.isStanleyCupFinal && gameTime(g) < FINAL_START);
+  const games = dedupeGames([...regularSeasonHistory, ...finalsGames])
     .sort((a, b) => gameTime(a) - gameTime(b))
     .map((g, idx) => ({ ...g, gameNumber: idx + 1 }));
 

@@ -33,7 +33,7 @@ export function HistoryTracker({ data }: { data: TrackerData }) {
       <div className="label">Full VGK vs CAR history</div>
       <h2>Season Matchup History</h2>
       <p className="small">
-        Includes previous regular season games, today&apos;s live game, and upcoming scheduled games.
+        Shows regular season matchups plus the 7 Stanley Cup Final games only.
       </p>
 
       {sortedGames.map((game) => (
