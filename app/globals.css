@@ -159,3 +159,31 @@ h2, h3 { margin: 0 0 10px; }
   0%, 100% { box-shadow: 0 0 0 rgba(206,17,38,0); }
   50% { box-shadow: 0 0 18px rgba(206,17,38,.55); }
 }
+
+
+.hero-team-score {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 76px;
+}
+
+.hero-series-number {
+  font-size: clamp(44px, 12vw, 74px);
+  line-height: .9;
+  font-weight: 1000;
+  letter-spacing: -0.08em;
+  text-shadow: 0 10px 28px rgba(0,0,0,.32);
+}
+
+@media (max-width: 430px) {
+  .hero-team-score {
+    gap: 7px;
+    min-height: 64px;
+  }
+
+  .hero-series-number {
+    font-size: clamp(38px, 13vw, 58px);
+  }
+}
