@@ -1,0 +1,131 @@
+
+/* Goal alert animation additions */
+
+.scoreboard-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.scoreboard-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.notify-button {
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 999px;
+  padding: 8px 10px;
+  color: white;
+  background: rgba(255,255,255,.08);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.goal-alert {
+  position: absolute;
+  inset: 12px;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  border-radius: 22px;
+  padding: 18px;
+  color: white;
+  background:
+    radial-gradient(circle at top, rgba(255,255,255,.25), transparent 18rem),
+    rgba(0,0,0,.9);
+  border: 2px solid rgba(255,255,255,.35);
+  animation: goalPop 6.5s ease forwards;
+}
+
+.goal-alert-big {
+  font-size: clamp(42px, 12vw, 86px);
+  font-weight: 1000;
+  letter-spacing: -0.08em;
+  line-height: .9;
+  text-transform: uppercase;
+}
+
+.goal-vgk {
+  box-shadow: 0 0 70px rgba(244,208,111,.45);
+}
+
+.goal-car {
+  box-shadow: 0 0 70px rgba(206,17,38,.55);
+}
+
+.goal-shake {
+  animation: scoreboardShake .55s ease;
+}
+
+.animated-score-row {
+  transition: transform .25s ease, background .25s ease, border-color .25s ease;
+  border-radius: 16px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.score-flash {
+  animation: scorePulse 2.5s ease;
+}
+
+.score-flash.flash-vgk {
+  background: rgba(185,151,91,.32);
+  box-shadow: 0 0 26px rgba(244,208,111,.25);
+}
+
+.score-flash.flash-car {
+  background: rgba(206,17,38,.32);
+  box-shadow: 0 0 26px rgba(206,17,38,.25);
+}
+
+@keyframes goalPop {
+  0% {
+    opacity: 0;
+    transform: scale(.75) rotate(-2deg);
+  }
+  10% {
+    opacity: 1;
+    transform: scale(1.05) rotate(1deg);
+  }
+  18% {
+    transform: scale(1) rotate(0deg);
+  }
+  82% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(.92);
+    pointer-events: none;
+  }
+}
+
+@keyframes scoreboardShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+
+@keyframes scorePulse {
+  0% {
+    transform: scale(1);
+  }
+  15% {
+    transform: scale(1.03);
+  }
+  35% {
+    transform: scale(1);
+  }
+  55% {
+    transform: scale(1.025);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
