@@ -8,143 +8,22 @@ export const revalidate = 0;
 const TEAM_ABBRS = new Set(["VGK", "CAR"]);
 const NHL_SEASON = "20252026";
 
-/*
-  The manual Finals schedule drives:
-  - countdown
-  - full 7-game schedule display
-  - wager eligibility
-
-  Live scores are merged into these games from multiple data sources:
-  1. NHL score/now
-  2. NHL club schedules
-  3. NHL gamecenter landing
-  4. ESPN NHL scoreboard fallback
-*/
 const MANUAL_FINALS_SCHEDULE: CupGame[] = [
-  {
-    id: "scf-game-1",
-    gameNumber: 1,
-    startTimeUTC: "2026-06-03T00:00:00Z",
-    venue: "PNC Arena, Raleigh, NC",
-    homeTeam: "CAR",
-    awayTeam: "VGK",
-    homeScore: null,
-    awayScore: null,
-    status: "scheduled",
-    ifNecessary: false,
-    broadcast: "TBD",
-    gameType: 3,
-    playoffRound: 4,
-    isStanleyCupFinal: true
-  },
-  {
-    id: "scf-game-2",
-    gameNumber: 2,
-    startTimeUTC: "2026-06-05T00:00:00Z",
-    venue: "PNC Arena, Raleigh, NC",
-    homeTeam: "CAR",
-    awayTeam: "VGK",
-    homeScore: null,
-    awayScore: null,
-    status: "scheduled",
-    ifNecessary: false,
-    broadcast: "TBD",
-    gameType: 3,
-    playoffRound: 4,
-    isStanleyCupFinal: true
-  },
-  {
-    id: "scf-game-3",
-    gameNumber: 3,
-    startTimeUTC: "2026-06-07T00:00:00Z",
-    venue: "T-Mobile Arena, Las Vegas, NV",
-    homeTeam: "VGK",
-    awayTeam: "CAR",
-    homeScore: null,
-    awayScore: null,
-    status: "scheduled",
-    ifNecessary: false,
-    broadcast: "TBD",
-    gameType: 3,
-    playoffRound: 4,
-    isStanleyCupFinal: true
-  },
-  {
-    id: "scf-game-4",
-    gameNumber: 4,
-    startTimeUTC: "2026-06-09T00:00:00Z",
-    venue: "T-Mobile Arena, Las Vegas, NV",
-    homeTeam: "VGK",
-    awayTeam: "CAR",
-    homeScore: null,
-    awayScore: null,
-    status: "scheduled",
-    ifNecessary: false,
-    broadcast: "TBD",
-    gameType: 3,
-    playoffRound: 4,
-    isStanleyCupFinal: true
-  },
-  {
-    id: "scf-game-5",
-    gameNumber: 5,
-    startTimeUTC: "2026-06-11T00:00:00Z",
-    venue: "PNC Arena, Raleigh, NC",
-    homeTeam: "CAR",
-    awayTeam: "VGK",
-    homeScore: null,
-    awayScore: null,
-    status: "scheduled",
-    ifNecessary: true,
-    broadcast: "TBD",
-    gameType: 3,
-    playoffRound: 4,
-    isStanleyCupFinal: true
-  },
-  {
-    id: "scf-game-6",
-    gameNumber: 6,
-    startTimeUTC: "2026-06-13T00:00:00Z",
-    venue: "T-Mobile Arena, Las Vegas, NV",
-    homeTeam: "VGK",
-    awayTeam: "CAR",
-    homeScore: null,
-    awayScore: null,
-    status: "scheduled",
-    ifNecessary: true,
-    broadcast: "TBD",
-    gameType: 3,
-    playoffRound: 4,
-    isStanleyCupFinal: true
-  },
-  {
-    id: "scf-game-7",
-    gameNumber: 7,
-    startTimeUTC: "2026-06-15T00:00:00Z",
-    venue: "PNC Arena, Raleigh, NC",
-    homeTeam: "CAR",
-    awayTeam: "VGK",
-    homeScore: null,
-    awayScore: null,
-    status: "scheduled",
-    ifNecessary: true,
-    broadcast: "TBD",
-    gameType: 3,
-    playoffRound: 4,
-    isStanleyCupFinal: true
-  }
+  { id: "scf-game-1", gameNumber: 1, startTimeUTC: "2026-06-03T00:00:00Z", venue: "PNC Arena, Raleigh, NC", homeTeam: "CAR", awayTeam: "VGK", homeScore: null, awayScore: null, status: "scheduled", ifNecessary: false, broadcast: "TBD", gameType: 3, playoffRound: 4, isStanleyCupFinal: true },
+  { id: "scf-game-2", gameNumber: 2, startTimeUTC: "2026-06-05T00:00:00Z", venue: "PNC Arena, Raleigh, NC", homeTeam: "CAR", awayTeam: "VGK", homeScore: null, awayScore: null, status: "scheduled", ifNecessary: false, broadcast: "TBD", gameType: 3, playoffRound: 4, isStanleyCupFinal: true },
+  { id: "scf-game-3", gameNumber: 3, startTimeUTC: "2026-06-07T00:00:00Z", venue: "T-Mobile Arena, Las Vegas, NV", homeTeam: "VGK", awayTeam: "CAR", homeScore: null, awayScore: null, status: "scheduled", ifNecessary: false, broadcast: "TBD", gameType: 3, playoffRound: 4, isStanleyCupFinal: true },
+  { id: "scf-game-4", gameNumber: 4, startTimeUTC: "2026-06-09T00:00:00Z", venue: "T-Mobile Arena, Las Vegas, NV", homeTeam: "VGK", awayTeam: "CAR", homeScore: null, awayScore: null, status: "scheduled", ifNecessary: false, broadcast: "TBD", gameType: 3, playoffRound: 4, isStanleyCupFinal: true },
+  { id: "scf-game-5", gameNumber: 5, startTimeUTC: "2026-06-11T00:00:00Z", venue: "PNC Arena, Raleigh, NC", homeTeam: "CAR", awayTeam: "VGK", homeScore: null, awayScore: null, status: "scheduled", ifNecessary: true, broadcast: "TBD", gameType: 3, playoffRound: 4, isStanleyCupFinal: true },
+  { id: "scf-game-6", gameNumber: 6, startTimeUTC: "2026-06-13T00:00:00Z", venue: "T-Mobile Arena, Las Vegas, NV", homeTeam: "VGK", awayTeam: "CAR", homeScore: null, awayScore: null, status: "scheduled", ifNecessary: true, broadcast: "TBD", gameType: 3, playoffRound: 4, isStanleyCupFinal: true },
+  { id: "scf-game-7", gameNumber: 7, startTimeUTC: "2026-06-15T00:00:00Z", venue: "PNC Arena, Raleigh, NC", homeTeam: "CAR", awayTeam: "VGK", homeScore: null, awayScore: null, status: "scheduled", ifNecessary: true, broadcast: "TBD", gameType: 3, playoffRound: 4, isStanleyCupFinal: true }
 ];
 
 async function getJson(url: string) {
   try {
     const res = await fetch(url, {
       cache: "no-store",
-      headers: {
-        "Accept": "application/json",
-        "User-Agent": "Stanley-Cup-Wager-Tracker/1.0"
-      }
+      headers: { Accept: "application/json" }
     });
-
     if (!res.ok) return null;
     return res.json();
   } catch {
@@ -154,10 +33,8 @@ async function getJson(url: string) {
 
 function parseNhlStatus(game: any): CupGame["status"] {
   const state = String(game.gameState || game.gameScheduleState || "").toUpperCase();
-
   if (state === "LIVE" || state === "CRIT") return "live";
   if (state === "FINAL" || state === "OFF") return "final";
-
   return "scheduled";
 }
 
@@ -167,21 +44,14 @@ function parseEspnStatus(event: any): CupGame["status"] {
 
   if (state === "in" || name.includes("in_progress")) return "live";
   if (state === "post" || name.includes("final")) return "final";
-
   return "scheduled";
 }
 
 function isVgkCarNhl(game: any) {
   const home = game.homeTeam?.abbrev;
   const away = game.awayTeam?.abbrev;
-
-  return (
-    home &&
-    away &&
-    TEAM_ABBRS.has(home) &&
-    TEAM_ABBRS.has(away) &&
-    ((home === "VGK" && away === "CAR") || (home === "CAR" && away === "VGK"))
-  );
+  return home && away && TEAM_ABBRS.has(home) && TEAM_ABBRS.has(away) &&
+    ((home === "VGK" && away === "CAR") || (home === "CAR" && away === "VGK"));
 }
 
 function normalizeNhlGame(game: any, index: number): CupGame | null {
@@ -203,7 +73,7 @@ function normalizeNhlGame(game: any, index: number): CupGame | null {
     : "";
 
   return {
-    id: `nhl-${String(game.id || game.gamePk || `${game.startTimeUTC}-${index}`)}`,
+    id: String(game.id || game.gamePk || `nhl-${game.startTimeUTC}-${index}`),
     gameNumber: index + 1,
     startTimeUTC: game.startTimeUTC || game.gameDate,
     venue: game.venue?.default || game.venueLocation?.default || undefined,
@@ -225,9 +95,6 @@ function normalizeNhlGame(game: any, index: number): CupGame | null {
 function normalizeEspnGame(event: any, index: number): CupGame | null {
   const competition = event?.competitions?.[0];
   const competitors = competition?.competitors || [];
-
-  if (!Array.isArray(competitors) || competitors.length < 2) return null;
-
   const homeComp = competitors.find((c: any) => c.homeAway === "home");
   const awayComp = competitors.find((c: any) => c.homeAway === "away");
 
@@ -247,21 +114,18 @@ function normalizeEspnGame(event: any, index: number): CupGame | null {
     winner = homeScore > awayScore ? homeAbbr : awayAbbr;
   }
 
-  const period = typeof event?.status?.period === "number" ? event.status.period : null;
-  const clock = event?.status?.displayClock || event?.status?.type?.shortDetail || null;
-
   return {
-    id: `espn-${String(event.id || `${event.date}-${index}`)}`,
+    id: String(event.id || `espn-${event.date}-${index}`),
     gameNumber: index + 1,
     startTimeUTC: event.date,
-    venue: competition?.venue?.fullName || competition?.venue?.address?.city || undefined,
+    venue: competition?.venue?.fullName || undefined,
     homeTeam: homeAbbr,
     awayTeam: awayAbbr,
     homeScore: Number.isFinite(homeScore) ? homeScore : null,
     awayScore: Number.isFinite(awayScore) ? awayScore : null,
     status,
-    period,
-    clock,
+    period: typeof event?.status?.period === "number" ? event.status.period : null,
+    clock: event?.status?.displayClock || event?.status?.type?.shortDetail || null,
     winner,
     gameType: 3,
     playoffRound: 4,
@@ -272,29 +136,57 @@ function normalizeEspnGame(event: any, index: number): CupGame | null {
   };
 }
 
-function datesClose(aIso: string, bIso: string) {
-  const a = new Date(aIso).getTime();
-  const b = new Date(bIso).getTime();
-  return Math.abs(a - b) <= 1000 * 60 * 60 * 36;
+function gameTime(game: CupGame) {
+  return new Date(game.startTimeUTC).getTime();
+}
+
+function timeDiffHours(aIso: string, bIso: string) {
+  return Math.abs(gameTime({ startTimeUTC: aIso } as CupGame) - gameTime({ startTimeUTC: bIso } as CupGame)) / 36e5;
 }
 
 function sameMatchup(a: CupGame, b: CupGame) {
   return a.homeTeam === b.homeTeam && a.awayTeam === b.awayTeam;
 }
 
+function dedupeGames(games: CupGame[]) {
+  const map = new Map<string, CupGame>();
+
+  for (const game of games) {
+    const day = new Date(game.startTimeUTC).toISOString().slice(0, 10);
+    const key = `${day}-${game.awayTeam}-${game.homeTeam}`;
+    const existing = map.get(key);
+
+    if (!existing) {
+      map.set(key, game);
+      continue;
+    }
+
+    const currentRank =
+      (game.status === "live" ? 3 : game.status === "final" ? 2 : 1) +
+      (game.homeScore !== null && game.awayScore !== null ? 1 : 0);
+
+    const existingRank =
+      (existing.status === "live" ? 3 : existing.status === "final" ? 2 : 1) +
+      (existing.homeScore !== null && existing.awayScore !== null ? 1 : 0);
+
+    if (currentRank > existingRank) map.set(key, game);
+  }
+
+  return Array.from(map.values());
+}
+
 function chooseBestApiGame(manual: CupGame, apiGames: CupGame[]) {
-  const sameGame = apiGames.filter((g) => sameMatchup(g, manual) && datesClose(g.startTimeUTC, manual.startTimeUTC));
-  const liveSameMatchup = apiGames.filter((g) => sameMatchup(g, manual) && g.status === "live");
+  const same = apiGames
+    .filter((g) => sameMatchup(g, manual))
+    .map((g) => ({ game: g, hours: timeDiffHours(g.startTimeUTC, manual.startTimeUTC) }))
+    .filter((x) => x.hours <= 18) // prevents one live game from attaching to games 2, 5, and 7
+    .sort((a, b) => {
+      const aRank = (a.game.status === "live" ? 3 : a.game.status === "final" ? 2 : 1) + (a.game.homeScore !== null ? 1 : 0);
+      const bRank = (b.game.status === "live" ? 3 : b.game.status === "final" ? 2 : 1) + (b.game.homeScore !== null ? 1 : 0);
+      return bRank - aRank || a.hours - b.hours;
+    });
 
-  const candidates = [...sameGame, ...liveSameMatchup];
-
-  return (
-    candidates.find((g) => g.status === "live" && g.homeScore !== null && g.awayScore !== null) ||
-    candidates.find((g) => g.status === "final" && g.homeScore !== null && g.awayScore !== null) ||
-    candidates.find((g) => g.homeScore !== null && g.awayScore !== null) ||
-    candidates[0] ||
-    null
-  );
+  return same[0]?.game || null;
 }
 
 function mergeFinalsSchedule(apiGames: CupGame[]) {
@@ -318,10 +210,9 @@ function mergeFinalsSchedule(apiGames: CupGame[]) {
   });
 }
 
-function buildTracker(historyGames: CupGame[], source: TrackerData["source"]): TrackerData {
-  const games = historyGames
-    .filter(Boolean)
-    .sort((a, b) => new Date(a.startTimeUTC).getTime() - new Date(b.startTimeUTC).getTime())
+function buildTracker(rawGames: CupGame[], source: TrackerData["source"]): TrackerData {
+  const games = dedupeGames(rawGames)
+    .sort((a, b) => gameTime(a) - gameTime(b))
     .map((g, idx) => ({ ...g, gameNumber: idx + 1 }));
 
   const finalsGames = mergeFinalsSchedule(games);
@@ -339,8 +230,7 @@ function buildTracker(historyGames: CupGame[], source: TrackerData["source"]): T
 
   const liveGame = finalsGames.find((g) => g.status === "live") || null;
   const nextGame =
-    finalsGames.find((g) => g.status === "scheduled" && new Date(g.startTimeUTC).getTime() >= now - 1000 * 60 * 60 * 8) ||
-    null;
+    finalsGames.find((g) => g.status === "scheduled" && gameTime(g) >= now - 1000 * 60 * 60 * 8) || null;
 
   return {
     generatedAt: new Date().toISOString(),
@@ -361,14 +251,12 @@ function espnDateString(date: Date) {
 function uniqueDatesForEspn() {
   const dates = new Set<string>();
 
-  // Pull today/yesterday/tomorrow so live games are covered even with timezone shifts.
   for (const offset of [-1, 0, 1]) {
     const d = new Date();
     d.setUTCDate(d.getUTCDate() + offset);
     dates.add(espnDateString(d));
   }
 
-  // Pull every scheduled Finals date too.
   for (const game of MANUAL_FINALS_SCHEDULE) {
     dates.add(espnDateString(new Date(game.startTimeUTC)));
   }
@@ -394,16 +282,13 @@ export async function GET() {
       .map((raw, index) => normalizeNhlGame(raw, index))
       .filter(Boolean) as CupGame[];
 
-    // If NHL says the game is live, call gamecenter landing for the freshest state.
     const liveNhlCandidate = nhlGames.find((g) => g.status === "live");
     if (liveNhlCandidate?.id) {
-      const realGameId = liveNhlCandidate.id.replace("nhl-", "");
-      const landing = await getJson(`https://api-web.nhle.com/v1/gamecenter/${realGameId}/landing`);
+      const landing = await getJson(`https://api-web.nhle.com/v1/gamecenter/${liveNhlCandidate.id}/landing`);
       const normalizedLanding = landing ? normalizeNhlGame(landing, 9999) : null;
       if (normalizedLanding) nhlGames.push(normalizedLanding);
     }
 
-    // ESPN fallback: this is the additional path when NHL endpoints do not expose the game correctly.
     const espnPayloads = await Promise.all(
       uniqueDatesForEspn().map((date) =>
         getJson(`https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/scoreboard?dates=${date}`)
@@ -415,14 +300,7 @@ export async function GET() {
       .map((event, index) => normalizeEspnGame(event, index))
       .filter(Boolean) as CupGame[];
 
-    const combined = [...nhlGames, ...espnGames];
-
-    const unique = new Map<string, CupGame>();
-    combined.forEach((game) => {
-      unique.set(`${game.homeTeam}-${game.awayTeam}-${game.startTimeUTC}-${game.id}`, game);
-    });
-
-    return NextResponse.json(buildTracker(Array.from(unique.values()), "nhl-api"), {
+    return NextResponse.json(buildTracker([...nhlGames, ...espnGames], "nhl-api"), {
       headers: {
         "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
         Pragma: "no-cache",
