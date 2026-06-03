@@ -117,7 +117,7 @@ export default function Home() {
       ) : (
         <div className="grid">
           <Countdown nextGame={data.nextGame} liveGame={data.liveGame} />
-          <Scoreboard game={latestFinalsGame} />
+          <Scoreboard game={latestFinalsGame} series={data.series} />
           <div className="grid two">
             <WagerTracker data={data} perspective={perspective} setPerspective={setPerspective} />
             <SeriesTracker data={data} />
