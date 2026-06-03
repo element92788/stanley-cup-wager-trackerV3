@@ -159,3 +159,37 @@ h2, h3 { margin: 0 0 10px; }
   0%, 100% { box-shadow: 0 0 0 rgba(206,17,38,0); }
   50% { box-shadow: 0 0 18px rgba(206,17,38,.55); }
 }
+
+
+/* Header series score integrated with original logos */
+.team-logo-score {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 78px;
+}
+
+.header-series-score {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: rgba(0,0,0,.38);
+  border: 1px solid rgba(255,255,255,.16);
+  font-size: clamp(28px, 8vw, 42px);
+  line-height: 1;
+  font-weight: 1000;
+  letter-spacing: -0.06em;
+  box-shadow: 0 8px 20px rgba(0,0,0,.25);
+}
+
+.header-series-score.gold {
+  color: var(--gold-bright);
+}
+
+.header-series-score.red {
+  color: #ff4254;
+}

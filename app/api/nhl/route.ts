@@ -61,14 +61,116 @@ function isVgkCarNhl(game: any) {
     ((home === "VGK" && away === "CAR") || (home === "CAR" && away === "VGK"));
 }
 
+function scoreValue(...values: any[]) {
+  for (const value of values) {
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (typeof value === "string" && value.trim() !== "" && Number.isFinite(Number(value))) return Number(value);
+  }
+  return null;
+}
+
+function teamAbbrFromGoal(goal: any): TeamAbbr | null {
+  const possible =
+    goal.teamAbbrev?.default ||
+    goal.teamAbbrev ||
+    goal.team?.abbrev ||
+    goal.team?.abbreviation ||
+    goal.team?.triCode ||
+    goal.teamCode ||
+    goal.clubAbbrev ||
+    goal.scoringTeam?.abbrev ||
+    goal.scoringTeam?.abbreviation ||
+    goal.ownerTeamAbbrev ||
+    null;
+
+  return possible === "VGK" || possible === "CAR" ? possible : null;
+}
+
+function periodNumberFromGoal(goal: any, fallback: number) {
+  const n =
+    goal.periodDescriptor?.number ??
+    goal.period ??
+    goal.periodNumber ??
+    goal.periodNum ??
+    fallback;
+  return Number(n) || fallback;
+}
+
+function periodScoresFromGoals(game: any): PeriodScore[] {
+  const buckets = new Map<number, { period: number; away: number; home: number }>();
+  const home = game.homeTeam?.abbrev as TeamAbbr | undefined;
+  const away = game.awayTeam?.abbrev as TeamAbbr | undefined;
+  if (!home || !away) return [];
+
+  const scoringGroups =
+    game.summary?.scoring ||
+    game.scoringSummary ||
+    game.scoring ||
+    [];
+
+  if (Array.isArray(scoringGroups)) {
+    for (const group of scoringGroups) {
+      const fallbackPeriod = Number(group.periodDescriptor?.number || group.period || group.periodNumber || 1);
+      const goals = Array.isArray(group.goals) ? group.goals : Array.isArray(group.plays) ? group.plays : [];
+      for (const goal of goals) {
+        const period = periodNumberFromGoal(goal, fallbackPeriod);
+        const team = teamAbbrFromGoal(goal);
+        if (!team) continue;
+        const current = buckets.get(period) || { period, away: 0, home: 0 };
+        if (team === away) current.away += 1;
+        if (team === home) current.home += 1;
+        buckets.set(period, current);
+      }
+    }
+  }
+
+  const plays = game.plays || game.scoringPlays || game.gameCenter?.plays || [];
+  if (Array.isArray(plays)) {
+    for (const play of plays) {
+      const type =
+        play.typeDescKey ||
+        play.typeCode ||
+        play.eventType ||
+        play.eventTypeId ||
+        play.result?.eventTypeId ||
+        "";
+      if (!String(type).toLowerCase().includes("goal")) continue;
+
+      const period = periodNumberFromGoal(play, 1);
+      const team = teamAbbrFromGoal(play);
+      if (!team) continue;
+
+      const current = buckets.get(period) || { period, away: 0, home: 0 };
+      if (team === away) current.away += 1;
+      if (team === home) current.home += 1;
+      buckets.set(period, current);
+    }
+  }
+
+  return Array.from(buckets.values()).sort((a, b) => a.period - b.period);
+}
+
 function getNhlPeriodScores(game: any): PeriodScore[] {
-  const source = game.linescore?.periods || game.periodScores || game.periods || [];
-  if (!Array.isArray(source)) return [];
-  return source.map((p: any, idx: number) => ({
-    period: Number(p.periodDescriptor?.number || p.num || p.period || idx + 1),
-    away: typeof p.away === "number" ? p.away : typeof p.awayScore === "number" ? p.awayScore : null,
-    home: typeof p.home === "number" ? p.home : typeof p.homeScore === "number" ? p.homeScore : null
-  }));
+  const source =
+    game.linescore?.periods ||
+    game.lineScore?.periods ||
+    game.periodScores ||
+    game.periods ||
+    [];
+
+  if (Array.isArray(source) && source.length) {
+    const parsed = source.map((p: any, idx: number) => ({
+      period: Number(p.periodDescriptor?.number || p.num || p.period || p.periodNumber || idx + 1),
+      away: scoreValue(p.away, p.awayScore, p.awayTeam?.score, p.awayGoals),
+      home: scoreValue(p.home, p.homeScore, p.homeTeam?.score, p.homeGoals)
+    }));
+
+    if (parsed.some((p) => p.away !== null || p.home !== null)) {
+      return parsed;
+    }
+  }
+
+  return periodScoresFromGoals(game);
 }
 
 function getStatusText(game: any, status: CupGame["status"]) {
@@ -292,8 +394,22 @@ export async function GET() {
 
     const liveNhlCandidate = nhlGames.find((g) => g.status === "live");
     if (liveNhlCandidate?.id) {
-      const landing = await getJson(`https://api-web.nhle.com/v1/gamecenter/${liveNhlCandidate.id}/landing`);
-      const normalizedLanding = landing ? normalizeNhlGame(landing, 9999) : null;
+      const [landing, rightRail, boxscore] = await Promise.all([
+        getJson(`https://api-web.nhle.com/v1/gamecenter/${liveNhlCandidate.id}/landing`),
+        getJson(`https://api-web.nhle.com/v1/gamecenter/${liveNhlCandidate.id}/right-rail`),
+        getJson(`https://api-web.nhle.com/v1/gamecenter/${liveNhlCandidate.id}/boxscore`)
+      ]);
+
+      const mergedLive = landing
+        ? {
+            ...landing,
+            summary: rightRail?.summary || landing?.summary,
+            scoringSummary: rightRail?.summary?.scoring || landing?.summary?.scoring,
+            linescore: landing?.linescore || boxscore?.linescore
+          }
+        : null;
+
+      const normalizedLanding = mergedLive ? normalizeNhlGame(mergedLive, 9999) : null;
       if (normalizedLanding) nhlGames.push(normalizedLanding);
     }
 
